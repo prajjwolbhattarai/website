@@ -519,128 +519,112 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                           <p><em>Work Details:</em></p>
                           <p>Defined project scope and timelines to align with business objectives.</p> <p>Built risk management plans, ensuring quality control in project execution.</p> <p>Monitored project progress, delivering results within deadlines and budgets.</p>
                       </div>
-   </div>
-           <div class="row">     
-   
-<div class="col-lg-6" data-aos="fade-up"> 
-    <h3 class="resume-title">View My Portfolio</h3>
-    <img src="port.png" alt="Thumbnail" class="thumbnail" id="pdf-thumbnail">
 
-    <!-- The Modal for Portfolio -->
-    <div id="pdf-modal" class="modal">
-        <span class="close" onclick="closeModal('pdf-modal')">&times;</span>
-        <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" id="pdf-embed" class="modal-content" />
-    </div>
-  <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-    <h3 class="resume-title">View Employer Verification</h3>
-    <img src="ref.png" alt="Thumbnail" class="thumbnail" id="pdf-thumbnail-2">
+                  </div>
+                  <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                      <h3 class="resume-title">View My Portfolio</h3>
+                      <img src="port.png" alt="Thumbnail" class="thumbnail" id="pdf-thumbnail">
 
-    <!-- The Modal for Employer Verification -->
-    <div id="pdf-modal-2" class="modal">
-        <span class="close" onclick="closeModal('pdf-modal-2')">&times;</span>
-        <embed src="Employer verification.pdf" type="application/pdf" id="pdf-embed-2" class="modal-content" />
-    </div> </div> </div>
-                    
-</div>
-<script>
-    // Function to open the modal
-    function openModal(modalId) {
-        document.getElementById(modalId).style.display = "block";
-        adjustPdfSize(modalId); // Adjust PDF size when modal is opened
-    }
+                      <!-- The Modal -->
+                      <div id="pdf-modal" class="modal">
+                          <span class="close" onclick="closeModal()">&times;</span>
+                          <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" id="pdf-embed" class="modal-content" />
+                      </div>
 
-    // Function to close the modal
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-    }
+                  </div>
+              </div>
 
-    // Function to adjust PDF size
-    function adjustPdfSize(modalId) {
-        var modalContent = document.querySelector(`#${modalId} .modal-content`);
-        modalContent.style.width = "80%"; // Set initial width
-        modalContent.style.height = "80vh"; // Set initial height
-        modalContent.style.maxWidth = "none"; // Remove max-width restriction
-    }
 
-    // Function to close the modal when clicked outside of the PDF content
-    window.onclick = function (event) {
-        var modals = document.querySelectorAll('.modal');
-        modals.forEach(function(modal) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        });
-    };
+          </div>
+      </section><!-- End Resume Section -->
 
-    // Add event listeners to thumbnails for opening modals
-    document.getElementById('pdf-thumbnail').addEventListener('click', function() {
-        openModal('pdf-modal');
-    });
+      <script>
+          // Function to open the modal
+          function openModal() {
+              document.getElementById('pdf-modal').style.display = "block";
+              adjustPdfSize(); // Adjust PDF size when modal is opened
+          }
 
-    document.getElementById('pdf-thumbnail-2').addEventListener('click', function() {
-        openModal('pdf-modal-2');
-    });
+          // Function to close the modal
+          function closeModal() {
+              document.getElementById('pdf-modal').style.display = "none";
+          }
 
-    // Add event listener to window for resizing the PDF when the window is resized
-    window.addEventListener('resize', function() {
-        adjustPdfSize('pdf-modal');
-        adjustPdfSize('pdf-modal-2');
-    });
-</script>
+          // Function to adjust PDF size
+          function adjustPdfSize() {
+              var modalContent = document.querySelector('.modal-content');
+              modalContent.style.width = "80%"; // Set initial width
+              modalContent.style.height = "80vh"; // Set initial height
+              modalContent.style.maxWidth = "none"; // Remove max-width restriction
+          }
 
-<style>
-    /* Faded button style */
-    .thumbnail {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-        width: 100%; /* Adjust width as needed */
-        height: auto; /* Maintain aspect ratio */
-    }
+          // Function to close the modal when clicked outside of the PDF content
+          window.onclick = function (event) {
+              var modal = document.getElementById('pdf-modal');
+              if (event.target == modal) {
+                  closeModal();
+              }
+          };
 
-    .thumbnail:hover {
-        transform: scale(1.1);
-    }
+          // Add event listener to thumbnail for opening modal
+          document.getElementById('pdf-thumbnail').addEventListener('click', openModal);
 
-    /* Modal styles */
-    .modal {
-        display: none; /* Hidden by default */
-        position: fixed; /* Stay in place */
-        z-index: 9999; /* Sit on top */
-        padding-top: 50px; /* Location of the box */
-        left: 0;
-        top: 0;
-        width: 100%; /* Full width */
-        height: 100%; /* Full height */
-        overflow: auto; /* Enable scroll if needed */
-        background-color: rgb(0, 0, 0); /* Fallback color */
-        background-color: rgba(0, 0, 0, 0.9); /* Black w/ opacity */
-    }
+          // Add event listener to window for resizing the PDF when the window is resized
+          window.addEventListener('resize', adjustPdfSize);
+      </script>
+      <style>
+          /* Faded button style */
+          .thumbnail {
+              cursor: pointer;
+              transition: transform 0.3s ease;
+              width: 100%; /* Adjust width as needed */
+              height: auto; /* Maintain aspect ratio */
+          }
 
-    /* Modal content */
-    .modal-content {
-        margin: auto;
-        display: block;
-        width: 80%;
-        height: 100%;
-        max-width: 800px;
-    }
+              .thumbnail:hover {
+                  transform: scale(1.1);
+              }
 
-    /* Close button */
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-    }
 
-    .close:hover,
-    .close:focus {
-        color: #fff;
-        text-decoration: none;
-        cursor: pointer;
-    }
-</style>
+          /* Modal styles */
+          .modal {
+              display: none; /* Hidden by default */
+              position: fixed; /* Stay in place */
+              z-index: 9999; /* Sit on top */
+              padding-top: 50px; /* Location of the box */
+              left: 0;
+              top: 0;
+              width: 100%; /* Full width */
+              height: 100%; /* Full height */
+              overflow: auto; /* Enable scroll if needed */
+              background-color: rgb(0,0,0); /* Fallback color */
+              background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+          }
 
+          /* Modal content */
+          .modal-content {
+              margin: auto;
+              display: block;
+              width: 80%;
+              height: 100%;
+              max-width: 800px;
+          }
+
+          /* Close button */
+          .close {
+              color: #aaa;
+              float: right;
+              font-size: 28px;
+              font-weight: bold;
+          }
+
+              .close:hover,
+              .close:focus {
+                  color: #fff;
+                  text-decoration: none;
+                  cursor: pointer;
+              }
+      </style>
 
       <!-- ======= Portfolio Section ======= -->
       <section id="licenses" class="portfolio section-bg">
