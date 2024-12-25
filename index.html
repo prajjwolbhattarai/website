@@ -521,7 +521,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                       </div>
   </div>
                 
-           <div class="row">
+         <div class="row">
     <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
         <h3 class="resume-title">View My Portfolio</h3>
         <img src="port.png" alt="Thumbnail" class="thumbnail" id="portfolio-thumbnail" onclick="openModal('pdf-modal')">
@@ -529,7 +529,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- The Modal -->
         <div id="pdf-modal" class="modal">
             <span class="close" onclick="closeModal('pdf-modal')">&times;</span>
-            <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" class="modal-content" />
+            <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" class="modal-content-full" />
         </div>
     </div>
 
@@ -540,7 +540,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- The Modal -->
         <div id="pdf-modal2" class="modal">
             <span class="close" onclick="closeModal('pdf-modal2')">&times;</span>
-            <embed src="Employer verification.pdf" type="application/pdf" class="modal-content" />
+            <embed src="Employer verification.pdf" type="application/pdf" class="modal-content-full" />
         </div>
     </div>
 </div>
@@ -584,15 +584,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         top: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+        background-color: rgba(0, 0, 0, 0.8);
     }
 
-    .modal-content {
-        margin: 15% auto;
+    .modal-content-full {
+        margin: 0;
         display: block;
-        width: 80%;
-        max-width: 700px;
+        width: 100%;
+        height: 100%;
     }
 
     .close {
@@ -603,9 +603,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         font-size: 35px;
         font-weight: bold;
         cursor: pointer;
+        z-index: 1001;
     }
 </style>
-
 
 
       <!-- ======= Portfolio Section ======= -->
