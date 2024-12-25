@@ -543,67 +543,93 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 </div>
 
-<script>
-    function openModal(modalId) {
-        document.getElementById(modalId).style.display = "block";
-    }
+ <script>
+          // Function to open the modal
+          function openModal() {
+              document.getElementById('pdf-modal').style.display = "block";
+              adjustPdfSize(); // Adjust PDF size when modal is opened
+          }
 
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-    }
-</script>
+          // Function to close the modal
+          function closeModal() {
+              document.getElementById('pdf-modal').style.display = "none";
+          }
 
-<style>
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-    }
+          // Function to adjust PDF size
+          function adjustPdfSize() {
+              var modalContent = document.querySelector('.modal-content');
+              modalContent.style.width = "80%"; // Set initial width
+              modalContent.style.height = "80vh"; // Set initial height
+              modalContent.style.maxWidth = "none"; // Remove max-width restriction
+          }
 
-    .col-lg-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 15px;
-    }
+          // Function to close the modal when clicked outside of the PDF content
+          window.onclick = function (event) {
+              var modal = document.getElementById('pdf-modal');
+              if (event.target == modal) {
+                  closeModal();
+              }
+          };
 
-    .thumbnail {
-        width: 100%;
-        cursor: pointer;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+          // Add event listener to thumbnail for opening modal
+          document.getElementById('pdf-thumbnail').addEventListener('click', openModal);
 
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background-color: rgba(0, 0, 0, 0.8);
-    }
+          // Add event listener to window for resizing the PDF when the window is resized
+          window.addEventListener('resize', adjustPdfSize);
+      </script>
+      <style>
+          /* Faded button style */
+          .thumbnail {
+              cursor: pointer;
+              transition: transform 0.3s ease;
+              width:100%; /* Adjust width as needed */
+              height: auto; /* Maintain aspect ratio */
+          }
 
-    .modal-content-full {
-        margin: 0;
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
+              .thumbnail:hover {
+                  transform: scale(1.1);
+              }
 
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 25px;
-        color: #fff;
-        font-size: 35px;
-        font-weight: bold;
-        cursor: pointer;
-        z-index: 1001;
-    }
-</style>
+
+          /* Modal styles */
+          .modal {
+              display: none; /* Hidden by default */
+              position: fixed; /* Stay in place */
+              z-index: 9999; /* Sit on top */
+              padding-top: 50px; /* Location of the box */
+              left: 0;
+              top: 0;
+              width: 100%; /* Full width */
+              height: 100%; /* Full height */
+              overflow: auto; /* Enable scroll if needed */
+              background-color: rgb(0,0,0); /* Fallback color */
+              background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+          }
+
+          /* Modal content */
+          .modal-content {
+              margin: auto;
+              display: block;
+              width: 80%;
+              height: 100%;
+              max-width: 800px;
+          }
+
+          /* Close button */
+          .close {
+              color: #aaa;
+              float: right;
+              font-size: 28px;
+              font-weight: bold;
+          }
+
+              .close:hover,
+              .close:focus {
+                  color: #fff;
+                  text-decoration: none;
+                  cursor: pointer;
+              }
+      </style>
 
       <!-- ======= Portfolio Section ======= -->
       <section id="licenses" class="portfolio section-bg">
