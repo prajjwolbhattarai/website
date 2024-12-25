@@ -532,6 +532,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                       </div>
 
                   </div>
+                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="resume-title">View Employer Verification</h3>
+    <img src="ref.png" alt="Thumbnail" class="thumbnail" id="pdf-thumbnail-2">
+
+    <!-- The Modal for Employer Verification -->
+    <div id="pdf-modal-2" class="modal">
+        <span class="close" onclick="closeModal('pdf-modal-2')">&times;</span>
+        <embed src="Employer verification.pdf" type="application/pdf" id="pdf-embed-2" class="modal-content" />
+    </div>
+
+                  </div>
               </div>
 
 
@@ -540,14 +551,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <script>
           // Function to open the modal
-          function openModal() {
-              document.getElementById('pdf-modal').style.display = "block";
+          function openModal(modalId) {
+              document.getElementById('pdf-modalId').style.display = "block";
               adjustPdfSize(); // Adjust PDF size when modal is opened
           }
 
           // Function to close the modal
-          function closeModal() {
-              document.getElementById('pdf-modal').style.display = "none";
+          function closeModal(modalId) {
+              document.getElementById('pdf-modalId').style.display = "none";
           }
 
           // Function to adjust PDF size
@@ -560,9 +571,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           // Function to close the modal when clicked outside of the PDF content
           window.onclick = function (event) {
-              var modal = document.getElementById('pdf-modal');
+              var modal = document.getElementById('pdf-modalId');
               if (event.target == modal) {
-                  closeModal();
+                  closeModal(modalId);
               }
           };
 
