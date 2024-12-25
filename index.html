@@ -521,15 +521,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                       </div>
   </div>
                 
-         <div class="row">
+        <div class="row">
     <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
         <h3 class="resume-title">View My Portfolio</h3>
         <img src="port.png" alt="Thumbnail" class="thumbnail" id="portfolio-thumbnail" onclick="openModal('pdf-modal')">
 
         <!-- The Modal -->
-        <div id="pdf-modal" class="modal">
-            <span class="close" onclick="closeModal('pdf-modal')">&times;</span>
-            <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" class="modal-content-full" />
+        <div id="pdf-modal" class="modal" onclick="closeModal('pdf-modal')">
+            <embed src="Portfolio Prajjwol Bhattarai.pdf" type="application/pdf" class="modal-content-full" onclick="event.stopPropagation()" />
         </div>
     </div>
 
@@ -538,9 +537,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <img src="ref.png" alt="Thumbnail" class="thumbnail" id="references-thumbnail" onclick="openModal('pdf-modal2')">
 
         <!-- The Modal -->
-        <div id="pdf-modal2" class="modal">
-            <span class="close" onclick="closeModal('pdf-modal2')">&times;</span>
-            <embed src="Employer verification.pdf" type="application/pdf" class="modal-content-full" />
+        <div id="pdf-modal2" class="modal" onclick="closeModal('pdf-modal2')">
+            <embed src="Employer verification.pdf" type="application/pdf" class="modal-content-full" onclick="event.stopPropagation()" />
         </div>
     </div>
 </div>
@@ -606,7 +604,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         z-index: 1001;
     }
 </style>
-
 
       <!-- ======= Portfolio Section ======= -->
       <section id="licenses" class="portfolio section-bg">
