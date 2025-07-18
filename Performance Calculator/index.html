@@ -1,1 +1,1137 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing ROI & Forecasting Hub</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- JS Libraries via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Load Google GenAI SDK and attach to window -->
+    <script type="module">
+      try {
+        const module = await import("https://esm.sh/@google/genai@1.10.0");
+        window.GoogleGenAI = module.GoogleGenAI;
+      } catch (e) {
+        console.error("Failed to load Google GenAI SDK", e);
+      }
+    </script>
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc; /* slate-50 */
+      }
+      .tooltip {
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .group:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+// ----- Inlined and Transformed Application Code -----
+
+// Helper to destructure React and other global library objects
+const { useState, useEffect, useCallback, useRef, StrictMode } = React;
+const { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = Recharts;
+const { jsPDF } = window.jspdf; 
+
+// ===== From constants.ts =====
+const CSV_TEMPLATE_HEADERS = "Platform,Campaign,Ad Set,Content,Keywords,Conversion Type,Start Date,End Date,Ad Spend,Impressions,Clicks,Customers Acquired,Total Revenue";
+const CSV_TEMPLATE_DATA = `Social Media,Summer Sale 2024,Lookalike Audience 1,Video Ad 1,"summer sale,discounts",Purchase,2024-07-01,2024-07-15,1500,80000,2400,120,7200
+Search Engine,Brand Keywords Q3,Exact Match,Text Ad 1,"our brand name",Lead,2024-07-01,2024-07-31,2500,12000,950,30,15000`;
+
+const CSV_TEMPLATE = `${CSV_TEMPLATE_HEADERS}\n${CSV_TEMPLATE_DATA}`;
+
+const CSV_HEADER_MAPPING = {
+    'platform': 'platform',
+    'campaign': 'campaign',
+    'ad set': 'adSet',
+    'adset': 'adSet',
+    'content': 'content',
+    'ad name': 'content',
+    'keywords': 'keywords',
+    'conversion type': 'conversionType',
+    'start date': 'startDate',
+    'end date': 'endDate',
+    'ad spend': 'adSpend',
+    'spend': 'adSpend',
+    'cost': 'adSpend',
+    'impressions': 'impressions',
+    'clicks': 'clicks',
+    'customers acquired': 'customersAcquired',
+    'conversions': 'customersAcquired',
+    'total revenue': 'totalRevenue',
+    'revenue': 'totalRevenue',
+};
+
+const REQUIRED_CSV_FIELDS = ['adSpend', 'totalRevenue', 'clicks'];
+
+const METRIC_TOOLTIPS = {
+    roas: "Return on Ad Spend: Total Revenue / Total Ad Spend. A measure of profitability.",
+    cac: "Customer Acquisition Cost: Total Ad Spend / Customers Acquired. The cost to acquire one new customer.",
+    avgCpc: "Average Cost Per Click: Total Ad Spend / Total Clicks. The average price paid for each click.",
+    ctr: "Click-Through Rate: (Clicks / Impressions) * 100. The percentage of impressions that resulted in a click.",
+    cpm: "Cost Per Mille (Thousand Impressions): (Ad Spend / Impressions) * 1000. The cost for 1,000 ad views.",
+    cpSql: "Cost Per Sales Qualified Lead: Total Ad Spend / SQLs. The cost to generate one lead deemed ready for sales.",
+    pipelineValue: "SQLs * Average Deal Size. The total potential value of your sales pipeline.",
+    arr: "Annual Recurring Revenue: New Monthly Recurring Revenue (MRR) * 12. Predicts annual subscription revenue.",
+    churnRate: "(Lost Subscribers / Starting Subscribers) * 100. The rate at which customers stop doing business with you."
+};
+
+// ===== From components/icons.tsx =====
+const LogoIcon = () => (
+    <svg className="h-8 w-8 text-teal-600" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9l8 -4.5" />
+        <path d="M12 12l8 -4.5" />
+        <path d="M12 12v9" />
+        <path d="M12 12l-8 -4.5" />
+        <path d="M16 5.25l-8 4.5" />
+    </svg>
+);
+
+const TrashIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+    </svg>
+);
+
+const UploadIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 9.414V13h-2.5a.5.5 0 010-1H13V8h-2.5A2.5 2.5 0 008 10.5V13H5.5z" />
+        <path d="M5 12a1 1 0 100 2h10a1 1 0 100-2H5z" />
+    </svg>
+);
+
+const DownloadIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+);
+
+const InfoIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+    </svg>
+);
+
+const SparklesIcon = () => (
+     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.586l-1.707 1.707a1 1 0 001.414 1.414L5 6.414V8a1 1 0 002 0V6.414l1.293 1.293a1 1 0 001.414-1.414L8 4.586V3a1 1 0 00-1-1H5zM15 2a1 1 0 00-1 1v1.586l-1.707 1.707a1 1 0 001.414 1.414L15 6.414V8a1 1 0 002 0V6.414l1.293 1.293a1 1 0 001.414-1.414L18 4.586V3a1 1 0 00-1-1h-2zM5 12a1 1 0 00-1 1v1.586l-1.707 1.707a1 1 0 001.414 1.414L5 16.414V18a1 1 0 002 0v-1.586l1.293 1.293a1 1 0 001.414-1.414L8 14.586V13a1 1 0 00-1-1H5zM15 12a1 1 0 00-1 1v1.586l-1.707 1.707a1 1 0 001.414 1.414L15 16.414V18a1 1 0 002 0v-1.586l1.293 1.293a1 1 0 001.414-1.414L18 14.586V13a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+    </svg>
+);
+
+// ===== From services/csvService.ts =====
+const parseCsv = (csvText) => {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) {
+        return { data: [], error: "CSV file must have a header row and at least one data row." };
+    }
+
+    const headerLine = lines.shift()?.trim().toLowerCase() ?? '';
+    const headers = headerLine.split(',').map(h => h.trim());
+
+    const mappedHeaders = headers.map(header => CSV_HEADER_MAPPING[header] || null);
+    
+    const missingHeaders = REQUIRED_CSV_FIELDS.filter(field => !mappedHeaders.includes(field));
+    if (missingHeaders.length > 0) {
+        return { data: [], error: `CSV is missing required columns: ${missingHeaders.join(', ')}.` };
+    }
+
+    const data = lines.map((line, index) => {
+        const values = line.split(',');
+        const rowData = {
+            id: `csv-${Date.now()}-${index}`,
+            platform: '', campaign: '', adSet: '', content: '', keywords: '', conversionType: '',
+            startDate: '', endDate: '', adSpend: 0, impressions: 0, clicks: 0,
+            customersAcquired: 0, totalRevenue: 0,
+        };
+
+        mappedHeaders.forEach((mappedHeader, i) => {
+            if (mappedHeader && values[i] !== undefined) {
+                const value = values[i].trim();
+                const numericFields = ['adSpend', 'impressions', 'clicks', 'customersAcquired', 'totalRevenue'];
+                if (numericFields.includes(mappedHeader)) {
+                     rowData[mappedHeader] = parseFloat(value) || 0;
+                } else {
+                     rowData[mappedHeader] = value;
+                }
+            }
+        });
+        return rowData;
+    });
+
+    return { data, error: null };
+};
+
+// ===== From services/calculationService.ts =====
+const safeDivide = (numerator, denominator) => {
+    return denominator === 0 ? 0 : numerator / denominator;
+};
+
+const aggregateData = (data) => {
+    return data.reduce((acc, row) => {
+        acc.totalAdSpend += row.adSpend;
+        acc.totalRevenue += row.totalRevenue;
+        acc.totalClicks += row.clicks;
+        acc.totalImpressions += row.impressions;
+        acc.totalCustomersAcquired += row.customersAcquired;
+        return acc;
+    }, {
+        totalAdSpend: 0,
+        totalRevenue: 0,
+        totalClicks: 0,
+        totalImpressions: 0,
+        totalCustomersAcquired: 0,
+    });
+};
+
+const calculateMetrics = (aggregated, globals) => {
+    const { totalAdSpend, totalRevenue, totalClicks, totalImpressions, totalCustomersAcquired } = aggregated;
+    const { salesQualifiedLeads, averageDealSize, newMRR, startingSubscribers, lostSubscribers } = globals;
+
+    const roas = safeDivide(totalRevenue, totalAdSpend);
+    const cac = safeDivide(totalAdSpend, totalCustomersAcquired);
+    const avgCpc = safeDivide(totalAdSpend, totalClicks);
+    const ctr = safeDivide(totalClicks, totalImpressions) * 100;
+    const cpm = safeDivide(totalAdSpend, totalImpressions) * 1000;
+    const cpSql = safeDivide(totalAdSpend, salesQualifiedLeads);
+    const pipelineValue = salesQualifiedLeads * averageDealSize;
+    const arr = newMRR * 12;
+    const churnRate = safeDivide(lostSubscribers, startingSubscribers) * 100;
+
+    return {
+        ...aggregated, roas, cac, avgCpc, ctr, cpm, cpSql, pipelineValue, arr, churnRate
+    };
+};
+
+const createBreakdown = (data, key) => {
+    const grouped = data.reduce((acc, row) => {
+        const groupName = row[key] || 'N/A';
+        if (!acc[groupName]) {
+            acc[groupName] = [];
+        }
+        acc[groupName].push(row);
+        return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([name, rows]) => {
+        const { totalAdSpend, totalRevenue, totalClicks, totalImpressions, totalCustomersAcquired } = aggregateData(rows);
+        return {
+            name,
+            adSpend: totalAdSpend,
+            revenue: totalRevenue,
+            roas: safeDivide(totalRevenue, totalAdSpend),
+            cac: safeDivide(totalAdSpend, totalCustomersAcquired),
+            cpc: safeDivide(totalAdSpend, totalClicks),
+            ctr: safeDivide(totalClicks, totalImpressions) * 100,
+        };
+    }).sort((a,b) => b.adSpend - a.adSpend);
+};
+
+const createForecasts = (metrics) => {
+    const { totalAdSpend, totalRevenue, totalCustomersAcquired, cac } = metrics;
+    const scenarios = [
+        { scenario: 'Current', multiplier: 1 },
+        { scenario: '+10% Spend', multiplier: 1.1 },
+        { scenario: '+20% Spend', multiplier: 1.2 },
+    ];
+
+    return scenarios.map(({ scenario, multiplier }) => {
+        const projectedSpend = totalAdSpend * multiplier;
+        const projectedRevenue = totalRevenue * multiplier;
+        const projectedCustomers = totalCustomersAcquired * multiplier;
+
+        return {
+            scenario,
+            spend: projectedSpend,
+            revenue: projectedRevenue,
+            customers: projectedCustomers,
+            cac: safeDivide(projectedSpend, projectedCustomers),
+        };
+    });
+};
+
+const runAnalysis = (name, data, globals) => {
+    const aggregated = aggregateData(data);
+    const metrics = calculateMetrics(aggregated, globals);
+    
+    const result = {
+        id: `analysis-${Date.now()}`,
+        name,
+        createdAt: new Date().toISOString(),
+        inputs: {
+            data,
+            globals,
+        },
+        results: {
+            metrics,
+            breakdowns: {
+                byPlatform: createBreakdown(data, 'platform'),
+                byCampaign: createBreakdown(data, 'campaign'),
+                byAdSet: createBreakdown(data, 'adSet'),
+                byContent: createBreakdown(data, 'content'),
+            },
+            forecasts: createForecasts(metrics),
+        }
+    };
+    return result;
+};
+
+
+// ===== From services/geminiService.ts =====
+const API_KEY_STORAGE_KEY = 'gemini_api_key';
+
+const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+const formatNumber = (value) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
+
+const generatePrompt = (result) => {
+    const { metrics, breakdowns, forecasts } = result.results;
+
+    const summary = `
+    **Executive Summary:**
+    - Total Ad Spend: ${formatCurrency(metrics.totalAdSpend)}
+    - Total Revenue: ${formatCurrency(metrics.totalRevenue)}
+    - Return on Ad Spend (ROAS): ${formatNumber(metrics.roas)}
+    - Customer Acquisition Cost (CAC): ${formatCurrency(metrics.cac)}
+    - Click-Through Rate (CTR): ${formatNumber(metrics.ctr)}%
+    - Cost Per Mille (CPM): ${formatCurrency(metrics.cpm)}
+    `;
+
+    const platformBreakdown = `
+    **Platform Performance:**
+    ${breakdowns.byPlatform.map(p => `- ${p.name}: Spend ${formatCurrency(p.adSpend)}, ROAS ${formatNumber(p.roas)}`).join('\n')}
+    `;
+
+    const campaignBreakdown = `
+    **Top Campaign Performance:**
+    ${breakdowns.byCampaign.slice(0, 5).map(c => `- ${c.name}: Spend ${formatCurrency(c.adSpend)}, ROAS ${formatNumber(c.roas)}`).join('\n')}
+    `;
+
+    const forecastSummary = `
+    **Forecasts:**
+    - Current: Spend ${formatCurrency(forecasts[0].spend)}, Revenue ${formatCurrency(forecasts[0].revenue)}
+    - +10% Spend: Projected Revenue ${formatCurrency(forecasts[1].revenue)}
+    - +20% Spend: Projected Revenue ${formatCurrency(forecasts[2].revenue)}
+    `;
+
+    return `
+    You are a world-class marketing analyst. Based on the following marketing performance data for "${result.name}", provide actionable insights.
+
+    **Data Provided:**
+    ${summary}
+    ${platformBreakdown}
+    ${campaignBreakdown}
+    ${forecastSummary}
+
+    **Your Task:**
+    Analyze the data and provide a concise report in markdown format. Structure your response with the following sections:
+    1.  **Key Insights & Observations:** What are the most important takeaways? (e.g., "Platform X is overperforming while Platform Y is underperforming.")
+    2.  **Actionable Recommendations:** What specific actions should be taken? (e.g., "Reallocate 15% of budget from Campaign A to Campaign B.")
+    3.  **Potential Risks & Opportunities:** What should we be cautious about, and where are the hidden growth potentials?
+    `;
+};
+
+function getApiKey() {
+  let key = localStorage.getItem(API_KEY_STORAGE_KEY);
+  if (!key) {
+    key = prompt('Please enter your Google Gemini API Key. It will be stored in your browser\'s local storage for future sessions.');
+    if (key) {
+      localStorage.setItem(API_KEY_STORAGE_KEY, key);
+    }
+  }
+  return key;
+}
+
+const getAiInsights = async (result) => {
+    try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            return "Error: API Key not provided. Please click the button again to enter your key.";
+        }
+
+        if (typeof window.GoogleGenAI === 'undefined') {
+             await new Promise(resolve => setTimeout(resolve, 500)); // Wait for module to load
+             if (typeof window.GoogleGenAI === 'undefined') {
+                return "Error: Google Gemini SDK could not be loaded. Please check your internet connection and refresh the page.";
+             }
+        }
+        
+        const ai = new window.GoogleGenAI({ apiKey: apiKey });
+        const model = 'gemini-2.5-flash';
+
+        const prompt = generatePrompt(result);
+
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                temperature: 0.3,
+                topP: 0.95
+            }
+        });
+        
+        return response.text;
+    } catch (error) {
+        console.error("Error fetching AI insights:", error);
+        return `Error: Could not generate AI insights. ${error instanceof Error ? error.message : 'An unknown error occurred.'}`;
+    }
+};
+
+// ===== From hooks/useCampaigns.ts =====
+const useCampaigns = () => {
+    const STORAGE_KEY = 'marketingRoiCampaigns';
+    const [campaigns, setCampaigns] = useState([]);
+
+    useEffect(() => {
+        try {
+            const storedCampaigns = localStorage.getItem(STORAGE_KEY);
+            if (storedCampaigns) {
+                setCampaigns(JSON.parse(storedCampaigns));
+            }
+        } catch (error) {
+            console.error("Failed to load campaigns from localStorage", error);
+        }
+    }, []);
+
+    const saveCampaign = useCallback((campaignResult) => {
+        setCampaigns(prevCampaigns => {
+            const newCampaigns = [campaignResult, ...prevCampaigns.filter(c => c.id !== campaignResult.id)];
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(newCampaigns));
+            } catch (error) {
+                console.error("Failed to save campaigns to localStorage", error);
+            }
+            return newCampaigns;
+        });
+    }, []);
+
+    const deleteCampaign = useCallback((campaignId) => {
+        setCampaigns(prevCampaigns => {
+            const updatedCampaigns = prevCampaigns.filter(c => c.id !== campaignId);
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCampaigns));
+            } catch (error) {
+                console.error("Failed to update campaigns in localStorage", error);
+            }
+            return updatedCampaigns;
+        });
+    }, []);
+
+    const clearHistory = useCallback(() => {
+        if (window.confirm("Are you sure you want to delete all saved analyses? This action cannot be undone.")) {
+            setCampaigns([]);
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (error) {
+                console.error("Failed to clear localStorage", error);
+            }
+        }
+    }, []);
+
+    return { campaigns, saveCampaign, deleteCampaign, clearHistory };
+};
+
+
+// ===== From components/DownloadOptionsModal.tsx =====
+const DownloadOptionsModal = ({ isOpen, onClose, onExportPdf, onExportCsv }) => {
+    const [sections, setSections] = useState({
+        metrics: true,
+        breakdowns: true,
+        visualizations: true,
+        forecasts: true,
+        aiInsights: true,
+    });
+
+    const handleCheckboxChange = (section) => {
+        setSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+    
+    const handleExportPdf = () => {
+        onExportPdf(sections);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-slate-800 mb-4">Download Report</h3>
+                
+                <div className="mb-6">
+                    <h4 className="font-semibold text-slate-700 mb-2">Export as PDF</h4>
+                    <p className="text-sm text-slate-500 mb-3">Select the sections to include in your PDF report.</p>
+                    <div className="space-y-2">
+                        {Object.keys(sections).map((key) => (
+                            <label key={key} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={sections[key]}
+                                    onChange={() => handleCheckboxChange(key)}
+                                    className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                                />
+                                <span className="text-sm text-slate-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <button onClick={handleExportPdf} className="mt-4 w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+                        Download PDF
+                    </button>
+                </div>
+                
+                <div className="border-t pt-4">
+                     <h4 className="font-semibold text-slate-700 mb-2">Export as CSV</h4>
+                      <p className="text-sm text-slate-500 mb-3">Export all calculated results in a detailed CSV file.</p>
+                      <button onClick={onExportCsv} className="w-full px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-md hover:bg-slate-200">
+                        Download CSV
+                    </button>
+                </div>
+
+                 <div className="mt-6 text-right">
+                    <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-md">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ===== From components/CampaignHistory.tsx =====
+const CampaignHistory = ({ campaigns, onLoad, onDelete, onClear }) => {
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-slate-800">Campaign History</h2>
+                {campaigns.length > 0 && (
+                    <button onClick={onClear} className="px-4 py-2 text-sm font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200">
+                        Clear All History
+                    </button>
+                )}
+            </div>
+            
+            {campaigns.length === 0 ? (
+                <p className="text-slate-500 text-center py-8">No saved analyses found. Create a new analysis to get started.</p>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Analysis Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ad Spend</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">ROAS</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">CAC</th>
+                                <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-slate-200">
+                            {campaigns.map(campaign => (
+                                <tr key={campaign.id} className="hover:bg-slate-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                                        <button onClick={() => onLoad(campaign.id)} className="hover:underline">{campaign.name}</button>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{new Date(campaign.createdAt).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{formatCurrency(campaign.results.metrics.totalAdSpend)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{formatNumber(campaign.results.metrics.roas)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{formatCurrency(campaign.results.metrics.cac)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                        <button onClick={() => onLoad(campaign.id)} className="text-indigo-600 hover:text-indigo-900 mr-4">Load</button>
+                                        <button onClick={() => onDelete(campaign.id)} className="text-red-600 hover:text-red-900">
+                                            <TrashIcon />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+// ===== From components/ResultsDashboard.tsx =====
+const formatPercent = (value) => `${formatNumber(value)}%`;
+const COLORS = ['#14b8a6', '#6366f1', '#f97316', '#3b82f6', '#ec4899', '#8b5cf6'];
+
+const MetricCard = ({ title, value, tooltip }) => (
+    <div className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between group relative">
+        <div className="flex items-center">
+            <h3 className="text-sm font-medium text-slate-500">{title}</h3>
+            <InfoIcon />
+        </div>
+        <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
+        <div className="tooltip absolute bottom-full mb-2 w-60 bg-slate-800 text-white text-xs rounded py-1 px-2 text-center z-10">
+            {tooltip}
+        </div>
+    </div>
+);
+
+const BreakdownTable = ({ title, data }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4 text-slate-800">{title}</h3>
+        <div className="overflow-x-auto max-h-80">
+            <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50 sticky top-0">
+                    <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">Spend</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">Revenue</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">ROAS</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">CTR</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                    {data.map((item) => (
+                        <tr key={item.name}>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.name}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 text-right">{formatCurrency(item.adSpend)}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 text-right">{formatCurrency(item.revenue)}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 text-right">{formatNumber(item.roas)}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-slate-600 text-right">{formatPercent(item.ctr)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+);
+
+const AiInsights = ({ result }) => {
+    const [insights, setInsights] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleFetchInsights = async () => {
+        setIsLoading(true);
+        setError('');
+        setInsights('');
+        const response = await getAiInsights(result);
+        if (response.startsWith('Error:')) {
+            setError(response);
+        } else {
+            setInsights(response);
+        }
+        setIsLoading(false);
+    };
+
+    return (
+        <div id="aiInsights-section" className="bg-indigo-50 p-6 rounded-lg shadow-md border border-indigo-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-4">AI-Powered Insights & Actions</h3>
+            {insights && (
+                <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: insights.replace(/\n/g, '<br />') }}/>
+            )}
+            {isLoading && <div className="text-center text-slate-600 animate-pulse">Generating insights...</div>}
+            {error && <div className="text-center text-red-600 p-2 bg-red-100 rounded-md">{error}</div>}
+            
+            <div className="text-center mt-4">
+                <button
+                    onClick={handleFetchInsights}
+                    disabled={isLoading}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                >
+                    <SparklesIcon />
+                    {insights ? 'Regenerate Insights' : 'Get AI Insights with Gemini'}
+                </button>
+                {!insights && !isLoading && !error && (
+                    <p className="text-xs text-slate-500 mt-2">You will be prompted for your Google Gemini API Key.</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const ResultsDashboard = ({ result }) => {
+    const { metrics, breakdowns, forecasts } = result.results;
+    const reportRef = useRef(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const metricsToDisplay = [
+        { key: 'roas', title: 'ROAS', format: formatNumber },
+        { key: 'cac', title: 'CAC', format: formatCurrency },
+        { key: 'avgCpc', title: 'Avg. CPC', format: formatCurrency },
+        { key: 'ctr', title: 'CTR', format: formatPercent },
+        { key: 'cpm', title: 'CPM', format: formatCurrency },
+        { key: 'cpSql', title: 'Cost Per SQL', format: formatCurrency },
+        { key: 'pipelineValue', title: 'Pipeline Value', format: formatCurrency },
+        { key: 'arr', title: 'ARR', format: formatCurrency },
+        { key: 'churnRate', title: 'Churn Rate', format: formatPercent },
+    ];
+    
+    const funnelData = [
+        { name: 'Impressions', value: metrics.totalImpressions },
+        { name: 'Clicks', value: metrics.totalClicks },
+        { name: 'Customers', value: metrics.totalCustomersAcquired },
+    ].filter(d => d.value > 0);
+    
+    const spendRevenueData = breakdowns.byPlatform
+        .map(p => ({ name: p.name, Spend: p.adSpend, Revenue: p.revenue }))
+        .sort((a,b) => b.Spend - a.Spend);
+
+    const exportToCsv = () => {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Category,Item,Ad Spend,Revenue,ROAS,CTR\n";
+        
+        breakdowns.byPlatform.forEach(item => {
+            csvContent += `Platform,${item.name},${item.adSpend},${item.revenue},${item.roas},${item.ctr}\n`;
+        });
+        breakdowns.byCampaign.forEach(item => {
+            csvContent += `Campaign,${item.name},${item.adSpend},${item.revenue},${item.roas},${item.ctr}\n`;
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${result.name}_report.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportToPdf = async (sections) => {
+        const reportElement = reportRef.current;
+        if (!reportElement) return;
+
+        // Temporarily hide elements not selected
+        const originalDisplays = [];
+        Object.entries(sections).forEach(([sectionId, shouldShow]) => {
+            const el = reportElement.querySelector(`#${sectionId}-section`);
+            if (el && el instanceof HTMLElement) {
+                 originalDisplays.push({ el, display: el.style.display });
+                 el.style.display = shouldShow ? '' : 'none';
+            }
+        });
+        
+        const canvas = await window.html2canvas(reportElement, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`${result.name}_report.pdf`);
+
+        // Restore visibility
+        originalDisplays.forEach(({ el, display }) => {
+            el.style.display = display;
+        });
+
+        setIsModalOpen(false);
+    };
+    
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-900">{result.name}</h2>
+                    <p className="text-sm text-slate-500">Report generated on {new Date(result.createdAt).toLocaleString()}</p>
+                </div>
+                 <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    <DownloadIcon />
+                    Download Report
+                </button>
+            </div>
+
+            <div ref={reportRef} className="space-y-6">
+                <div id="metrics-section" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <MetricCard title="Total Ad Spend" value={formatCurrency(metrics.totalAdSpend)} tooltip="The total amount of money spent on advertising." />
+                    <MetricCard title="Total Revenue" value={formatCurrency(metrics.totalRevenue)} tooltip="The total revenue generated from the campaigns." />
+                    {metricsToDisplay.map(m => (
+                        metrics[m.key] > 0 && <MetricCard key={m.key} title={m.title} value={m.format(metrics[m.key])} tooltip={METRIC_TOOLTIPS[m.key]} />
+                    ))}
+                </div>
+
+                <div id="visualizations-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-bold mb-4 text-slate-800">Spend Distribution</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie data={breakdowns.byPlatform} dataKey="adSpend" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                                    {breakdowns.byPlatform.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip formatter={(value) => formatCurrency(value)} />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-bold mb-4 text-slate-800">Conversion Funnel</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                           <BarChart layout="vertical" data={funnelData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
+                                <Tooltip formatter={(value) => formatNumber(value)}/>
+                                <Bar dataKey="value" barSize={40} fill="#14b8a6">
+                                    {funnelData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                </Bar>
+                           </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                        <h3 className="text-lg font-bold mb-4 text-slate-800">Spend vs. Revenue</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={spendRevenueData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                                <Tooltip formatter={(value) => formatCurrency(value)} />
+                                <Legend />
+                                <Bar dataKey="Spend" fill="#6366f1" />
+                                <Bar dataKey="Revenue" fill="#14b8a6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+                
+                <div id="forecasts-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                         <h3 className="text-lg font-bold mb-4 text-slate-800">Forecasting</h3>
+                         <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={forecasts}>
+                               <CartesianGrid strokeDasharray="3 3" />
+                               <XAxis dataKey="scenario" />
+                               <YAxis tickFormatter={(value) => formatCurrency(value)}/>
+                               <Tooltip formatter={(value) => formatCurrency(value)} />
+                               <Legend />
+                               <Bar dataKey="revenue" name="Projected Revenue" fill="#14b8a6" />
+                               <Bar dataKey="spend" name="Projected Spend" fill="#6366f1" />
+                            </BarChart>
+                         </ResponsiveContainer>
+                    </div>
+                     <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-bold mb-4 text-slate-800">Forecast Details</h3>
+                        <table className="min-w-full divide-y divide-slate-200">
+                             <thead className="bg-slate-50">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Scenario</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">Spend</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">Revenue</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">CAC</th>
+                                </tr>
+                            </thead>
+                             <tbody className="bg-white divide-y divide-slate-200">
+                                {forecasts.map(f => (
+                                    <tr key={f.scenario}>
+                                        <td className="px-4 py-2 text-sm font-medium">{f.scenario}</td>
+                                        <td className="px-4 py-2 text-sm text-right">{formatCurrency(f.spend)}</td>
+                                        <td className="px-4 py-2 text-sm text-right">{formatCurrency(f.revenue)}</td>
+                                        <td className="px-4 py-2 text-sm text-right">{formatCurrency(f.cac)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="breakdowns-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <BreakdownTable title="Breakdown by Platform" data={breakdowns.byPlatform} />
+                    <BreakdownTable title="Breakdown by Campaign" data={breakdowns.byCampaign} />
+                </div>
+                
+                <AiInsights result={result} />
+            </div>
+            
+            <DownloadOptionsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onExportPdf={exportToPdf}
+                onExportCsv={exportToCsv}
+            />
+        </div>
+    );
+};
+
+
+// ===== From components/InputForm.tsx =====
+const InputForm = ({ onAnalysisComplete }) => {
+    const [analysisName, setAnalysisName] = useState(`Analysis - ${new Date().toLocaleDateString()}`);
+    const [manualRows, setManualRows] = useState([{ id: `manual-${Date.now()}`, platform: 'Social Media', campaign: 'Summer Promo', adSet: 'Ad Set 1', adSpend: '1000', totalRevenue: '5000', clicks: '300' }]);
+    const [csvData, setCsvData] = useState([]);
+    const [globals, setGlobals] = useState({ customerLTV: 0, salesQualifiedLeads: 0, averageDealSize: 0, newMRR: 0, startingSubscribers: 0, lostSubscribers: 0 });
+    const [error, setError] = useState(null);
+    const [fileName, setFileName] = useState(null);
+
+    const handleAddRow = () => {
+        setManualRows([...manualRows, { id: `manual-${Date.now()}`, platform: '', campaign: '', adSet: '', adSpend: '', totalRevenue: '', clicks: '' }]);
+    };
+
+    const handleDeleteRow = (id) => {
+        setManualRows(manualRows.filter(row => row.id !== id));
+    };
+
+    const handleManualChange = (id, field, value) => {
+        setManualRows(manualRows.map(row => row.id === id ? { ...row, [field]: value } : row));
+    };
+
+    const handleGlobalChange = (field, value) => {
+        setGlobals({ ...globals, [field]: parseFloat(value) || 0 });
+    };
+
+    const handleCsvUpload = (event) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target?.result;
+                const { data, error: parseError } = parseCsv(text);
+                if (parseError) {
+                    setError(parseError);
+                    setCsvData([]);
+                } else {
+                    setError(null);
+                    setCsvData(data);
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    
+    const downloadTemplate = () => {
+        const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "marketing_data_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleSubmit = () => {
+        setError(null);
+        const manualData = manualRows
+          .filter(r => r.adSpend && r.totalRevenue && r.clicks)
+          .map(r => ({
+            id: r.id, platform: r.platform, campaign: r.campaign, adSet: r.adSet,
+            adSpend: parseFloat(r.adSpend) || 0,
+            totalRevenue: parseFloat(r.totalRevenue) || 0,
+            clicks: parseInt(r.clicks, 10) || 0,
+            impressions: 0, customersAcquired: 0, content: '', keywords: '', conversionType: '', startDate: '', endDate: ''
+        }));
+
+        const combinedData = [...csvData, ...manualData];
+        if (combinedData.length === 0) {
+            setError("Please add some data manually or upload a CSV file.");
+            return;
+        }
+
+        const result = runAnalysis(analysisName, combinedData, globals);
+        onAnalysisComplete(result);
+    };
+
+    return (
+        <div className="space-y-8">
+            {error && <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">{error}</div>}
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4 text-slate-800">1. Analysis Details</h2>
+                <label htmlFor="analysisName" className="block text-sm font-medium text-slate-700">Analysis Name</label>
+                <input type="text" id="analysisName" value={analysisName} onChange={e => setAnalysisName(e.target.value)} className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4 text-slate-800">2. Campaign Data</h2>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 className="text-lg font-semibold mb-3 text-slate-700">A) Upload CSV</h3>
+                        <div className="flex items-center space-x-4">
+                            <label htmlFor="csv-upload" className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <UploadIcon/>
+                                Upload CSV(s)
+                            </label>
+                            <input id="csv-upload" type="file" className="hidden" accept=".csv" onChange={handleCsvUpload} />
+                            <button onClick={downloadTemplate} className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">
+                                <DownloadIcon/>
+                                Download Template
+                            </button>
+                        </div>
+                        {fileName && <p className="text-sm text-slate-500 mt-2">Uploaded: {fileName} ({csvData.length} rows)</p>}
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold mb-3 text-slate-700">B) Manual Entry</h3>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-200">
+                                <thead className="bg-slate-50">
+                                    <tr>
+                                        {['Platform', 'Campaign', 'Ad Set', 'Ad Spend', 'Total Revenue', 'Clicks', ''].map(h => (
+                                            <th key={h} className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-slate-200">
+                                    {manualRows.map((row, index) => (
+                                        <tr key={row.id}>
+                                            <td><input value={row.platform} onChange={e => handleManualChange(row.id, 'platform', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><input value={row.campaign} onChange={e => handleManualChange(row.id, 'campaign', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><input value={row.adSet} onChange={e => handleManualChange(row.id, 'adSet', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><input type="number" value={row.adSpend} onChange={e => handleManualChange(row.id, 'adSpend', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><input type="number" value={row.totalRevenue} onChange={e => handleManualChange(row.id, 'totalRevenue', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><input type="number" value={row.clicks} onChange={e => handleManualChange(row.id, 'clicks', e.target.value)} className="w-full px-2 py-1 border-0 border-b-2 border-slate-200 focus:ring-0 focus:border-indigo-500"/></td>
+                                            <td><button onClick={() => handleDeleteRow(row.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon/></button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button onClick={handleAddRow} className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">+ Add Row</button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4 text-slate-800">3. Global Business Metrics (Optional)</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div><label className="block text-sm text-slate-600">Customer LTV ($)</label><input type="number" value={globals.customerLTV || ''} onChange={e => handleGlobalChange('customerLTV', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                    <div><label className="block text-sm text-slate-600">SQLs</label><input type="number" value={globals.salesQualifiedLeads || ''} onChange={e => handleGlobalChange('salesQualifiedLeads', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                    <div><label className="block text-sm text-slate-600">Avg. Deal Size ($)</label><input type="number" value={globals.averageDealSize || ''} onChange={e => handleGlobalChange('averageDealSize', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                    <div><label className="block text-sm text-slate-600">New MRR ($)</label><input type="number" value={globals.newMRR || ''} onChange={e => handleGlobalChange('newMRR', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                    <div><label className="block text-sm text-slate-600">Starting Subscribers</label><input type="number" value={globals.startingSubscribers || ''} onChange={e => handleGlobalChange('startingSubscribers', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                    <div><label className="block text-sm text-slate-600">Lost Subscribers</label><input type="number" value={globals.lostSubscribers || ''} onChange={e => handleGlobalChange('lostSubscribers', e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md" /></div>
+                </div>
+            </div>
+
+            <div className="flex justify-end">
+                <button onClick={handleSubmit} className="px-6 py-3 text-base font-medium text-white bg-teal-600 rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    Calculate & Save Analysis
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
+// ===== From App.tsx =====
+const App = () => {
+    const [currentView, setCurrentView] = useState('form');
+    const [activeAnalysis, setActiveAnalysis] = useState(null);
+    const { campaigns, saveCampaign, deleteCampaign, clearHistory } = useCampaigns();
+
+    const handleAnalysisComplete = useCallback((result) => {
+        saveCampaign(result);
+        setActiveAnalysis(result);
+        setCurrentView('results');
+    }, [saveCampaign]);
+
+    const handleLoadCampaign = useCallback((id) => {
+        const campaignToLoad = campaigns.find(c => c.id === id);
+        if (campaignToLoad) {
+            setActiveAnalysis(campaignToLoad);
+            setCurrentView('results');
+        }
+    }, [campaigns]);
+    
+    const handleDeleteCampaign = useCallback((id) => {
+        deleteCampaign(id);
+        if (activeAnalysis?.id === id) {
+            setActiveAnalysis(null);
+            setCurrentView('form');
+        }
+    }, [deleteCampaign, activeAnalysis]);
+
+    const handleCreateNew = () => {
+        setActiveAnalysis(null);
+        setCurrentView('form');
+    };
+    
+    const renderContent = () => {
+        switch (currentView) {
+            case 'history':
+                return <CampaignHistory 
+                            campaigns={campaigns} 
+                            onLoad={handleLoadCampaign} 
+                            onDelete={handleDeleteCampaign}
+                            onClear={clearHistory}
+                        />;
+            case 'results':
+                if (activeAnalysis) {
+                    return <ResultsDashboard result={activeAnalysis} />;
+                }
+                setCurrentView('form');
+                return <InputForm onAnalysisComplete={handleAnalysisComplete} />;
+            case 'form':
+            default:
+                return <InputForm onAnalysisComplete={handleAnalysisComplete} />;
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50 text-slate-800">
+            <header className="bg-white shadow-sm">
+                <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center space-x-3">
+                            <LogoIcon />
+                            <h1 className="text-xl font-bold text-slate-800">Marketing ROI & Forecasting Hub</h1>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                           <button onClick={handleCreateNew} className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                                New Analysis
+                            </button>
+                             <button onClick={() => setCurrentView('history')} className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                View History ({campaigns.length})
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+            <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+                {renderContent()}
+            </main>
+            <footer className="text-center py-4 text-sm text-slate-500">
+                <p>&copy; {new Date().getFullYear()} Marketing ROI & Forecasting Hub. All rights reserved.</p>
+            </footer>
+        </div>
+    );
+};
+
+
+// ===== From index.tsx =====
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+
+    </script>
+</body>
+</html>
+
