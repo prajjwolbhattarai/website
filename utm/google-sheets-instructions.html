@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Sheets Integration Setup</title>
+    <style>
+      /*! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com */
+      *,:after,:before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit;background-color:#F3F4F6}h1,h2,h3,p,button,label,input,textarea,th,td,ul,div,svg,code,pre,ol,li{margin:0;padding:0}a{color:inherit;text-decoration:inherit}.container{width:100%;margin-right:auto;margin-left:auto;padding-right:1rem;padding-left:1rem}@media (min-width:640px){.container{max-width:640px;padding-right:2rem;padding-left:2rem}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}.mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.mx-auto{margin-left:auto;margin-right:auto}.flex{display:flex}.items-center{align-items:center}.gap-4{gap:1rem}.w-10{width:2.5rem}.h-10{height:2.5rem}.max-w-3xl{max-width:48rem}.rounded-lg{border-radius:.5rem}.border{border-width:1px}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235/var(--tw-border-opacity))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251/var(--tw-bg-opacity))}.bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55/var(--tw-bg-opacity))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity))}.p-6{padding:1.5rem}.p-4{padding:1rem}.px-3{padding-left:.75rem;padding-right:.75rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.font-sans{font-family:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji"}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.tracking-tight{letter-spacing:-.025em}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128/var(--tw-text-opacity))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99/var(--tw-text-opacity))}.text-gray-800{--tw-text-opacity:1;color:rgb(31 41 55/var(--tw-text-opacity))}.text-gray-900{--tw-text-opacity:1;color:rgb(17 24 39/var(--tw-text-opacity))}.text-indigo-500{--tw-text-opacity:1;color:rgb(99 102 241/var(--tw-text-opacity))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity))}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.list-decimal{list-style-type:decimal}.list-disc{list-style-type:disc}.list-inside{list-style-position:inside}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem * var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}.text-sm{font-size:.875rem;line-height:1.25rem}.text-green-300{color:rgb(110 231 183)}.text-purple-300{color:rgb(208 191 255)}.text-yellow-300{color:rgb(252 211 77)}.overflow-x-auto{overflow-x:auto}.hover\:text-indigo-600:hover{--tw-text-opacity:1;color:rgb(79 70 229/var(--tw-text-opacity))}
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Google Sheets Integration Setup</h1>
+            <p class="mt-2 text-lg text-gray-600">Connect the UTM builder to your Google Account for seamless data logging.</p>
+        </header>
+
+        <main class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+            <div class="space-y-6 text-gray-800">
+                <p>Follow these steps to create a Google Apps Script Web App. This will generate a secure URL that you can use to send data from the UTM Builder directly into a Google Sheet.</p>
+                
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Step-by-Step Instructions</h2>
+                    <ol class="list-decimal list-inside space-y-4">
+                        <li>
+                            <strong>Create a Google Sheet:</strong> Go to <a href="https://sheets.new" target="_blank" rel="noopener" class="text-indigo-500 hover:text-indigo-600">sheets.new</a> to create a new, blank spreadsheet. Name it something memorable, like "UTM Link Log".
+                        </li>
+                        <li>
+                            <strong>Open the Script Editor:</strong> In your new sheet, go to <strong>Extensions &gt; Apps Script</strong>. This will open a new tab with the script editor.
+                        </li>
+                        <li>
+                            <strong>Paste the Code:</strong> Delete any boilerplate code (like `function myFunction() {}`) and paste the entire code block below into the editor.
+                            <div class="mt-2 bg-gray-800 text-white rounded-lg overflow-hidden">
+                                <div class="p-4 overflow-x-auto">
+                                    <pre><code class="language-javascript font-mono text-sm">
+const SHEET_NAME = 'UTM_Links';
+const HEADERS = [
+  'Timestamp', 'Base URL', 'Generated URL', 'Variation', 'utm_source', 'utm_medium', 'utm_campaign', 
+  'utm_term', 'utm_content', 'utm_id', 'utm_lang', 'utm_audience'
+];
+
+function doGet(e) {
+  const action = e.parameter.action;
+  if (action === 'checkParam') {
+    const fieldName = e.parameter.fieldName;
+    const value = e.parameter.value;
+    const exists = checkValueInColumn(fieldName, value);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ exists: exists }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid action' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function doPost(e) {
+  try {
+    const sheet = getAndPrepareSheet();
+    const links = JSON.parse(e.postData.contents);
+    
+    links.forEach(link => {
+      const rowData = [
+        new Date(),
+        link.baseUrl,
+        link.utmUrl,
+        link.variantInfo || '',
+        link.params.utm_source,
+        link.params.utm_medium,
+        link.params.utm_campaign,
+        link.params.utm_term || '',
+        link.params.utm_content || '',
+        link.params.utm_id || '',
+        link.params.utm_lang || '',
+        link.params.utm_audience || '',
+      ];
+      sheet.appendRow(rowData);
+    });
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'success', count: links.length }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    Logger.log(error);
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getAndPrepareSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function checkValueInColumn(fieldName, value) {
+  const sheet = getAndPrepareSheet();
+  const headerIndex = HEADERS.indexOf(fieldName);
+  
+  if (headerIndex === -1) {
+    return false; // Column not found
+  }
+  
+  const colNumber = headerIndex + 1;
+  const data = sheet.getRange(2, colNumber, sheet.getLastRow(), 1).getValues();
+  
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === value.toLowerCase()) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <strong>Save the Project:</strong> Click the "Save project" icon (it looks like a floppy disk). Give the project a name when prompted.
+                        </li>
+                        <li>
+                            <strong>Deploy the Web App:</strong>
+                            <ul class="list-disc list-inside mt-2 space-y-2 pl-4">
+                                <li>Click the blue <strong>Deploy</strong> button in the top right, then select <strong>New deployment</strong>.</li>
+                                <li>Click the gear icon next to "Select type" and choose <strong>Web app</strong>.</li>
+                                <li>In the "New deployment" dialog:
+                                    <ul class="list-disc list-inside mt-2 space-y-2 pl-4">
+                                        <li>For "Execute as", select <strong>Me</strong>.</li>
+                                        <li>For "Who has access", select <strong>Anyone</strong>. This is important, as it allows the tool to send data. <em>Note: Only you can execute the script, but anyone with the URL can trigger it. The script only allows adding rows, not reading or deleting data.</em></li>
+                                    </ul>
+                                </li>
+                                <li>Click <strong>Deploy</strong>.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>Authorize Permissions:</strong> The first time you deploy, Google will ask for permission to run the script. Click <strong>Authorize access</strong>, choose your Google account, click "Advanced", and then "Go to (unsafe)". Grant the requested permissions.
+                        </li>
+                        <li>
+                            <strong>Copy the Web App URL:</strong> After deployment, a dialog will show you the <strong>Web app URL</strong>. Copy this URL. It's your secure endpoint.
+                        </li>
+                        <li>
+                            <strong>Update the UTM Builder Tool:</strong> Open the `index.html` file of the UTM builder in a text editor. Find the line `const GOOGLE_SHEET_WEB_APP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';` and replace the placeholder text with the URL you just copied. Save the file.
+                        </li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold">You're All Set!</h3>
+                    <p class="mt-2">The "Save to Google Sheets" button in the UTM Builder will now send your generated links directly to your spreadsheet. The tool will also be able to check for existing parameters to help you maintain data consistency.</p>
+                </div>
+            </div>
+        </main>
+         <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p><a href="./index.html" class="underline text-indigo-500 hover:text-indigo-600">Back to UTM Builder</a></p>
+        </footer>
+    </div>
+</body>
+</html>
