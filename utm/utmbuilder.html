@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,7 +192,6 @@
         .lg\:block{display:block}
       }
     </style>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>
@@ -758,14 +758,15 @@
                 {showLinkList && <LinkList links={links} removeLink={removeLink} />}
               </main>
 
-                
-              <footer className="text-center mt-16 text-gray-500 text-sm">
-                <p>Built by Prajjwol </p>
-                <p className="mt-2">
-                     To set up Google Sheets integration and verify spelling features using the Google API, contact Prajjwol directly.
-                    <a href="https://github.com/google/generative-ai-docs/tree/main/demos/utm-builder" target="_blank" rel="noopener" className="underline text-indigo-500 hover:text-indigo-600">
-                    Features list
-                  </a>
+              <footer className="text-center mt-16 text-gray-500 text-sm space-y-2">
+                <p>
+                  <a href="./features.html" target="_blank" className="underline text-indigo-500 hover:text-indigo-600">Tool Features</a>
+                </p>
+                <p>
+                  To set up Google Sheets integration, see the <a href="./google-sheets-instructions.html" target="_blank" className="underline text-indigo-500 hover:text-indigo-600">setup instructions</a>.
+                </p>
+                 <p>
+                  Unlock AI-powered spelling suggestions. <a href="./api-key-features.html" target="_blank" className="underline text-indigo-500 hover:text-indigo-600">Learn about API Key features</a>.
                 </p>
               </footer>
             </div>
@@ -783,6 +784,5 @@
       );
 
     </script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
