@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTM Builder + Validator (Offline)</title>
+    <style>
+      /*! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com */
+      *,:after,:before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
+      html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}
+      body{margin:0;line-height:inherit; background-color: #F3F4F6;}
+      h1,h2,h3,p,button,label,input,textarea,th,td,ul,div,svg{margin:0;padding:0}
+      button{background-color:transparent;background-image:none;cursor:pointer;}
+      button:focus-visible{outline:2px solid transparent;outline-offset:2px}
+      a{color:inherit;text-decoration:inherit}
+      .container{width:100%;margin-right:auto;margin-left:auto;padding-right:1rem;padding-left:1rem}
+      @media (min-width:640px){.container{max-width:640px;padding-right:2rem;padding-left:2rem}}
+      @media (min-width:768px){.container{max-width:768px}}
+      @media (min-width:1024px){.container{max-width:1024px}}
+      .fixed{position:fixed}
+      .absolute{position:absolute}
+      .relative{position:relative}
+      .inset-0{top:0;right:0;bottom:0;left:0}
+      .inset-y-0{top:0;bottom:0}
+      .-mb-px{margin-bottom:-1px}
+      .mb-2{margin-bottom:.5rem}
+      .mb-4{margin-bottom:1rem}
+      .mb-6{margin-bottom:1.5rem}
+      .mb-8{margin-bottom:2rem}
+      .mt-1{margin-top:.25rem}
+      .mt-12{margin-top:3rem}
+      .mt-16{margin-top:4rem}
+      .mt-2{margin-top:.5rem}
+      .mt-4{margin-top:1rem}
+      .mt-6{margin-top:1.5rem}
+      .mr-2{margin-right:.5rem}
+      .mr-3{margin-right:.75rem}
+      .-ml-1{margin-left:-.25rem}
+      .mx-4{margin-left:1rem;margin-right:1rem}
+      .mx-auto{margin-left:auto;margin-right:auto}
+      .inline-flex{display:inline-flex}
+      .flex{display:flex}
+      .h-10{height:2.5rem}
+      .h-5{height:1.25rem}
+      .h-6{height:1.5rem}
+      .min-h-screen{min-height:100vh}
+      .w-10{width:2.5rem}
+      .w-5{width:1.25rem}
+      .w-6{width:1.5rem}
+      .w-full{width:100%}
+      .max-w-4xl{max-width:56rem}
+      .max-w-lg{max-width:32rem}
+      .max-w-md{max-width:28rem}
+      .min-w-full{min-width:100%}
+      .flex-1{flex:1 1 0%}
+      .animate-spin{animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .break-all{word-break:break-all}
+      .rounded-b-lg{border-bottom-right-radius:.5rem;border-bottom-left-radius:.5rem}
+      .rounded-full{border-radius:9999px}
+      .rounded-lg{border-radius:.5rem}
+      .rounded-md{border-radius:.375rem}
+      .rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem}
+      .border{border-width:1px}
+      .border-2{border-width:2px}
+      .border-b{border-bottom-width:1px}
+      .border-b-2{border-bottom-width:2px}
+      .border-t{border-top-width:1px}
+      .border-dashed{border-style:dashed}
+      .border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235/var(--tw-border-opacity))}
+      .border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219/var(--tw-border-opacity))}
+      .border-indigo-500{--tw-border-opacity:1;border-color:rgb(99 102 241/var(--tw-border-opacity))}
+      .bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0/var(--tw-bg-opacity))}
+      .bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254/var(--tw-bg-opacity))}
+      .bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235/var(--tw-bg-opacity))}
+      .bg-gray-100{--tw-bg-opacity:1;background-color:rgb(243 244 246/var(--tw-bg-opacity))}
+      .bg-gray-200{--tw-bg-opacity:1;background-color:rgb(229 231 235/var(--tw-bg-opacity))}
+      .bg-gray-200\/70{background-color:rgb(229 231 235/.7)}
+      .bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251/var(--tw-bg-opacity))}
+      .bg-green-100{--tw-bg-opacity:1;background-color:rgb(220 252 231/var(--tw-bg-opacity))}
+      .bg-green-600{--tw-bg-opacity:1;background-color:rgb(22 163 74/var(--tw-bg-opacity))}
+      .bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229/var(--tw-bg-opacity))}
+      .bg-opacity-50{--tw-bg-opacity:.5}
+      .bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity))}
+      .bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity))}
+      .p-1{padding:.25rem}
+      .p-2{padding:.5rem}
+      .p-3{padding:.75rem}
+      .p-4{padding:1rem}
+      .p-6{padding:1.5rem}
+      .px-2{padding-left:.5rem;padding-right:.5rem}
+      .px-4{padding-left:1rem;padding-right:1rem}
+      .px-6{padding-left:1.5rem;padding-right:1.5rem}
+      .py-10{padding-top:2.5rem;padding-bottom:2.5rem}
+      .py-2{padding-top:.5rem;padding-bottom:.5rem}
+      .py-3{padding-top:.75rem;padding-bottom:.75rem}
+      .py-4{padding-top:1rem;padding-bottom:1rem}
+      .pl-2{padding-left:.5rem}
+      .pr-3{padding-right:.75rem}
+      .pt-3{padding-top:.75rem}
+      .text-center{text-align:center}
+      .text-right{text-align:right}
+      .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+      .font-sans{font-family:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji"}
+      .text-4xl{font-size:2.25rem;line-height:2.5rem}
+      .text-lg{font-size:1.125rem;line-height:1.75rem}
+      .text-sm{font-size:.875rem;line-height:1.25rem}
+      .text-xl{font-size:1.25rem;line-height:1.75rem}
+      .text-xs{font-size:.75rem;line-height:1rem}
+      .font-bold{font-weight:700}
+      .font-medium{font-weight:500}
+      .font-semibold{font-weight:600}
+      .uppercase{text-transform:uppercase}
+      .leading-5{line-height:1.25rem}
+      .tracking-tight{letter-spacing:-.025em}
+      .tracking-wider{letter-spacing:.05em}
+      .text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity))}
+      .text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175/var(--tw-text-opacity))}
+      .text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128/var(--tw-text-opacity))}
+      .text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99/var(--tw-text-opacity))}
+      .text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81/var(--tw-text-opacity))}
+      .text-gray-800{--tw-text-opacity:1;color:rgb(31 41 55/var(--tw-text-opacity))}
+      .text-gray-900{--tw-text-opacity:1;color:rgb(17 24 39/var(--tw-text-opacity))}
+      .text-green-500{--tw-text-opacity:1;color:rgb(34 197 94/var(--tw-text-opacity))}
+      .text-green-600{--tw-text-opacity:1;color:rgb(22 163 74/var(--tw-text-opacity))}
+      .text-green-800{--tw-text-opacity:1;color:rgb(22 101 52/var(--tw-text-opacity))}
+      .text-indigo-500{--tw-text-opacity:1;color:rgb(99 102 241/var(--tw-text-opacity))}
+      .text-indigo-600{--tw-text-opacity:1;color:rgb(79 70 229/var(--tw-text-opacity))}
+      .text-red-500{--tw-text-opacity:1;color:rgb(239 68 68/var(--tw-text-opacity))}
+      .text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity))}
+      .text-red-800{--tw-text-opacity:1;color:rgb(153 27 27/var(--tw-text-opacity))}
+      .text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity))}
+      .underline{text-decoration-line:underline}
+      .opacity-25{opacity:.25}
+      .opacity-75{opacity:.75}
+      .shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0/.1),0 1px 2px -1px rgb(0 0 0/.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color),0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+      .shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+      .shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+      .shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0/.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+      .shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0/.1),0 8px 10px -6px rgb(0 0 0/.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color),0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+      .outline-none{outline:2px solid transparent;outline-offset:2px}
+      .divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}
+      .divide-gray-200>:not([hidden])~:not([hidden]){--tw-divide-opacity:1;border-color:rgb(229 231 235/var(--tw-divide-opacity))}
+      .overflow-hidden{overflow:hidden}
+      .overflow-x-auto{overflow-x:auto}
+      .list-disc{list-style-type:disc}
+      .list-inside{list-style-position:inside}
+      .select-all{-webkit-user-select:all;user-select:all}
+      .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+      .transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}
+      .duration-200{transition-duration:.2s}
+      .gap-4{gap:1rem}
+      .gap-x-4{column-gap:1rem}
+      .gap-y-6{row-gap:1.5rem}
+      .grid{display:grid}
+      .grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}
+      .space-x-2>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.5rem * var(--tw-space-x-reverse));margin-left:calc(.5rem * calc(1 - var(--tw-space-x-reverse)))}
+      .space-x-3>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.75rem * var(--tw-space-x-reverse));margin-left:calc(.75rem * calc(1 - var(--tw-space-x-reverse)))}
+      .space-x-4>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem * var(--tw-space-x-reverse));margin-left:calc(1rem * calc(1 - var(--tw-space-x-reverse)))}
+      .space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem * var(--tw-space-y-reverse))}
+      .space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem * var(--tw-space-y-reverse))}
+      .space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}
+      .space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}
+      .whitespace-nowrap{white-space:nowrap}
+      .stroke-currentColor{stroke:currentColor}
+      .fill-currentColor{fill:currentColor}
+      .fill-none{fill:none}
+      input,textarea{font-size:inherit;line-height:inherit;color:inherit;padding:.5rem .75rem;border-width:1px;--tw-border-opacity:1;border-color:rgb(209 213 219/var(--tw-border-opacity));border-radius:.375rem}
+      input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}
+      button,input,textarea{font-family:inherit}
+      :disabled{cursor:not-allowed}
+      .disabled\:cursor-not-allowed:disabled{cursor:not-allowed}
+      .disabled\:bg-gray-100:disabled{--tw-bg-opacity:1;background-color:rgb(243 244 246/var(--tw-bg-opacity))}
+      .disabled\:bg-gray-400:disabled{--tw-bg-opacity:1;background-color:rgb(156 163 175/var(--tw-bg-opacity))}
+      .focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
+      .focus\:border-indigo-500:focus{--tw-border-opacity:1;border-color:rgb(99 102 241/var(--tw-border-opacity))}
+      .focus\:ring-indigo-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(99 102 241/var(--tw-ring-opacity));--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000);border-color:rgb(99 102 241/var(--tw-ring-opacity))}
+      .hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216/var(--tw-bg-opacity))}
+      .hover\:bg-gray-200\/50:hover{background-color:rgb(229 231 235/.5)}
+      .hover\:bg-gray-300:hover{--tw-bg-opacity:1;background-color:rgb(209 213 219/var(--tw-bg-opacity))}
+      .hover\:bg-green-700:hover{--tw-bg-opacity:1;background-color:rgb(21 128 61/var(--tw-bg-opacity))}
+      .hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202/var(--tw-bg-opacity))}
+      .hover\:text-gray-700:hover{--tw-text-opacity:1;color:rgb(55 65 81/var(--tw-text-opacity))}
+      .hover\:text-indigo-500:hover{--tw-text-opacity:1;color:rgb(99 102 241/var(--tw-text-opacity))}
+      .hover\:text-red-500:hover{--tw-text-opacity:1;color:rgb(239 68 68/var(--tw-text-opacity))}
+      @media (min-width:768px){
+        .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+        .md\:p-8{padding:2rem}
+      }
+      @media (min-width:1024px){
+        .lg\:block{display:block}
+      }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Embed React and ReactDOM -->
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Embed Babel for JSX transpilation in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- All application code -->
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // --- Enums and Types (as comments) ---
+      // export enum AppView { Builder = 'builder', Validator = 'validator', BulkGenerator = 'bulk-generator' }
+
+      // --- Icons ---
+      const ClipboardIcon = ({ className = 'w-6 h-6' }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v11.25c0 .621-.504 1.125-1.125 1.125h-9.75c-.621 0-1.125-.504-1.125-1.125V4.5c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+        </svg>
+      );
+      const TrashIcon = ({ className = 'w-6 h-6' }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+      );
+      const LinkIcon = ({ className = 'w-6 h-6' }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+      );
+      const CheckCircleIcon = ({ className = 'w-6 h-6' }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+      const XCircleIcon = ({ className = 'w-6 h-6' }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+      
+      const GOOGLE_SHEET_WEB_APP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+      const ExistenceWarningDialog = ({ isOpen, fieldName, value, onConfirm }) => {
+          if (!isOpen) return null;
+          return (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="existence-dialog-title">
+                  <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+                      <h3 id="existence-dialog-title" className="text-lg font-semibold text-gray-900">Parameter Already Exists</h3>
+                      <p className="mt-2 text-gray-600">
+                          The value <span className="font-mono bg-gray-200 text-gray-800 p-1 rounded-md">{value}</span> for <span className="font-semibold">{fieldName.replace(/_/g, ' ')}</span> is already in use in your Google Sheet.
+                          <br /><br />
+                          Reusing names is recommended for accurate campaign tracking and grouping.
+                      </p>
+                      <div className="mt-6 flex justify-end">
+                          <button onClick={onConfirm} type="button" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold transition-colors">
+                              Got It
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          );
+      };
+
+      const LinkList = ({ links, removeLink }) => {
+        const [isSaving, setIsSaving] = useState(false);
+        const [saveStatus, setSaveStatus] = useState(null);
+
+        const hasVariants = links.some(link => link.variantInfo);
+
+        const exportToCSV = () => {
+          const headerItems = [
+            'Base URL', 'Generated URL', ...(hasVariants ? ['Variation'] : []),
+            'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+            'utm_id', 'utm_lang', 'utm_audience'
+          ];
+          const headers = headerItems.join(',');
+
+          const rows = links.map(link => {
+            const rowData = [
+              `"${link.baseUrl}"`, `"${link.utmUrl}"`, ...(hasVariants ? [`"${link.variantInfo || ''}"`] : []),
+              `"${link.params.utm_source}"`, `"${link.params.utm_medium}"`, `"${link.params.utm_campaign}"`,
+              `"${link.params.utm_term}"`, `"${link.params.utm_content}"`,
+              `"${link.params.utm_id || ''}"`, `"${link.params.utm_lang || ''}"`, `"${link.params.utm_audience || ''}"`,
+            ];
+            return rowData.join(',');
+          });
+
+          const csvContent = [headers, ...rows].join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('href', url);
+          a.setAttribute('download', 'utm_links.csv');
+          a.style.visibility = 'hidden';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        };
+
+        const saveToGoogleSheets = async () => {
+          if (GOOGLE_SHEET_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+            setSaveStatus({ type: 'info', message: 'To enable this feature, open this HTML file, find the GOOGLE_SHEET_WEB_APP_URL constant, and paste your Google Apps Script URL.' });
+            setTimeout(() => setSaveStatus(null), 7000);
+            return;
+          }
+          
+          setIsSaving(true);
+          setSaveStatus(null);
+          try {
+            const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+              method: 'POST',
+              body: JSON.stringify(links),
+              mode: 'no-cors', // Apps Script web apps require 'no-cors' for simple POSTs
+            });
+            // no-cors requests don't give back a readable response, so we assume success if no network error.
+            setSaveStatus({ type: 'success', message: 'Successfully sent data to Google Sheets! Check your sheet to confirm.' });
+          } catch (error) {
+             console.error('Error saving to Google Sheets:', error);
+             setSaveStatus({ type: 'error', message: `Failed to save. Check your internet connection and Apps Script setup. ${error.message}` });
+          } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveStatus(null), 5000);
+          }
+        };
+
+        if (links.length === 0) {
+          return (
+              <div className="mt-12 text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
+                <p className="text-gray-500">Your generated links will appear here.</p>
+              </div>
+          );
+        }
+
+        return (
+          <div className="mt-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+              <h2 className="text-xl font-bold text-gray-900">Generated Link List</h2>
+              <div className="flex items-center space-x-2">
+                  <button onClick={saveToGoogleSheets} disabled={isSaving} className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors duration-200">
+                    {isSaving && (
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {isSaving ? 'Saving...' : 'Save to Google Sheets'}
+                  </button>
+                  <button onClick={exportToCSV} className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition-colors duration-200">
+                    Export to CSV
+                  </button>
+              </div>
+            </div>
+            {saveStatus && (
+              <div className={`mb-4 p-3 rounded-md text-sm font-medium ${ saveStatus.type === 'success' ? 'bg-green-100 text-green-800' : saveStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }`} role={saveStatus.type === 'error' ? 'alert' : 'status'}>
+                {saveStatus.message}
+              </div>
+            )}
+            <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                      {hasVariants && <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variation</th>}
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated URL</th>
+                      <th scope="col" className="relative px-6 py-3"><span className="sr-only">Delete</span></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {links.map((link) => (
+                      <tr key={link.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{link.params.utm_campaign || '-'}</div>
+                          <div className="text-xs text-gray-500">{link.params.utm_source} / {link.params.utm_medium}</div>
+                        </td>
+                        {hasVariants && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {link.variantInfo ? (<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{link.variantInfo}</span>) : ('-')}
+                          </td>
+                        )}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a href={link.utmUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:text-indigo-500 break-all" title={link.utmUrl}>
+                            {link.utmUrl.length > 60 ? `${link.utmUrl.substring(0, 60)}...` : link.utmUrl}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button onClick={() => removeLink(link.id)} className="text-red-600 hover:text-red-500" title="Delete Link">
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      };
+      
+      const UTMBuilder = ({ addLink }) => {
+        const [baseUrl, setBaseUrl] = useState('');
+        const [params, setParams] = useState({ utm_source: '', utm_medium: '', utm_campaign: '', utm_term: '', utm_content: '', utm_id: '', utm_lang: '', utm_audience: '' });
+        const [generatedUrl, setGeneratedUrl] = useState('');
+        const [copied, setCopied] = useState(false);
+        const [error, setError] = useState('');
+        const [existenceWarning, setExistenceWarning] = useState({ open: false, fieldName: '', value: '' });
+        const [isChecking, setIsChecking] = useState(null);
+
+        const checkParameterExistence = async (fieldName, value) => {
+            if (!value || !navigator.onLine || GOOGLE_SHEET_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') return;
+            setIsChecking(fieldName);
+            try {
+                const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+                url.searchParams.append('action', 'checkParam');
+                url.searchParams.append('fieldName', fieldName);
+                url.searchParams.append('value', value);
+                const response = await fetch(url.toString(), { method: 'GET' });
+                const result = await response.json();
+                if (result.exists) {
+                    setExistenceWarning({ open: true, fieldName, value });
+                }
+            } catch (err) {
+                console.warn('Parameter existence check failed (maybe offline?):', err);
+            } finally {
+                setIsChecking(null);
+            }
+        };
+
+        useEffect(() => {
+          if (!baseUrl) {
+            setGeneratedUrl('');
+            setError('');
+            return;
+          }
+          try {
+            const url = new URL(baseUrl);
+            Object.entries(params).forEach(([key, value]) => {
+              if (value) url.searchParams.set(key, value);
+              else url.searchParams.delete(key);
+            });
+            setGeneratedUrl(url.toString());
+            setError('');
+          } catch (e) {
+            setGeneratedUrl('');
+            setError('Please enter a valid URL (e.g., https://example.com)');
+          }
+        }, [baseUrl, params]);
+
+        const handleParamChange = (e) => setParams({ ...params, [e.target.name]: e.target.value });
+        const handleParamBlur = (e) => {
+            const { name, value } = e.target;
+            if (value.trim()) checkParameterExistence(name, value);
+        };
+        const handleConfirmExistence = () => setExistenceWarning({ open: false, fieldName: '', value: '' });
+
+        const handleAddToList = () => {
+          if (generatedUrl && !error) {
+            addLink({ id: new Date().toISOString(), baseUrl, utmUrl: generatedUrl, params });
+            setBaseUrl('');
+            setParams({ utm_source: '', utm_medium: '', utm_campaign: '', utm_term: '', utm_content: '', utm_id: '', utm_lang: '', utm_audience: '' });
+          }
+        };
+        
+        const handleCopy = () => {
+          if (generatedUrl) {
+            navigator.clipboard.writeText(generatedUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }
+        };
+
+        const isFormIncomplete = !baseUrl || !params.utm_source || !params.utm_medium || !params.utm_campaign;
+        const inputFields = [
+          { name: 'utm_source', label: 'Platform (utm_source)', placeholder: 'e.g., google, newsletter', required: true },
+          { name: 'utm_medium', label: 'Traffic Type (utm_medium)', placeholder: 'e.g., cpc, email', required: true },
+          { name: 'utm_campaign', label: 'Campaign Name (utm_campaign)', placeholder: 'e.g., summer_sale', required: true },
+          { name: 'utm_content', label: 'Creative Version or Test (utm_content)', placeholder: 'e.g., logo_link (Optional)' },
+          { name: 'utm_term', label: 'Search Term or Segment (utm_term)', placeholder: 'e.g., running+shoes (Optional)' },
+          { name: 'utm_id', label: 'Ad System ID (utm_id)', placeholder: 'e.g., 12345 (Optional)' },
+          { name: 'utm_lang', label: 'Language (utm_lang)', placeholder: 'e.g., en-US, es (Optional)' },
+          { name: 'utm_audience', label: 'Audience (utm_audience)', placeholder: 'e.g., new_visitors (Optional)' },
+        ];
+
+        return (
+          <div className="space-y-6">
+             <ExistenceWarningDialog isOpen={existenceWarning.open} fieldName={existenceWarning.fieldName} value={existenceWarning.value} onConfirm={handleConfirmExistence} />
+            <div className="space-y-2">
+              <label htmlFor="baseUrl" className="block text-sm font-medium text-gray-700">Base URL <span className="text-red-500">*</span></label>
+              <input type="url" id="baseUrl" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://example.com/page" className="w-full bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+              {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+              {inputFields.map(field => (
+                <div key={field.name} className="space-y-2">
+                  <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
+                  <div className="relative">
+                    <input type="text" id={field.name} name={field.name} value={params[field.name] || ''} onChange={handleParamChange} onBlur={handleParamBlur} placeholder={field.placeholder} className="w-full bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                    {isChecking === field.name && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {generatedUrl && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Generated URL</label>
+                <div className="flex items-center space-x-2">
+                  <input type="text" readOnly value={generatedUrl} className="w-full bg-gray-100 border-gray-300 text-green-600 rounded-md shadow-sm select-all" />
+                  <button onClick={handleCopy} className="p-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-200" title="Copy to Clipboard">
+                    {copied ? 'Copied!' : <ClipboardIcon className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="text-right">
+              <button onClick={handleAddToList} disabled={isFormIncomplete || !!error} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200">
+                Add to Link List
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      const UTMValidator = () => {
+        const [urlsToValidate, setUrlsToValidate] = useState('');
+        const [results, setResults] = useState([]);
+        const [isValidating, setIsValidating] = useState(false);
+
+        const handleValidate = () => {
+          setIsValidating(true);
+          const urls = urlsToValidate.split('\n').filter(url => url.trim() !== '');
+          const validationResults = urls.map((urlString, index) => {
+            const result = { id: `${new Date().getTime()}-${index}`, url: urlString, isValid: false, errors: [] };
+            try {
+              const url = new URL(urlString);
+              const params = url.searchParams;
+              const requiredParams = ['utm_source', 'utm_medium', 'utm_campaign'];
+              let missingParams = [];
+              requiredParams.forEach(p => { if (!params.has(p) || !params.get(p)) missingParams.push(p); });
+              if (missingParams.length > 0) result.errors.push(`Missing required parameters: ${missingParams.join(', ')}.`);
+              else result.isValid = true;
+            } catch (e) {
+              result.errors.push('Invalid URL format.');
+            }
+            return result;
+          });
+          setResults(validationResults);
+          setIsValidating(false);
+        };
+
+        return (
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="urlsToValidate" className="block text-sm font-medium text-gray-700 mb-2">Paste URLs to Validate (one per line)</label>
+              <textarea id="urlsToValidate" rows={8} value={urlsToValidate} onChange={(e) => setUrlsToValidate(e.target.value)} placeholder="https://example.com/?utm_source=google&utm_medium=cpc&utm_campaign=summer_sale&#10;https://example.com/another?utm_source=facebook" className="w-full bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+            <div className="text-right">
+              <button onClick={handleValidate} disabled={!urlsToValidate.trim() || isValidating} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200">
+                {isValidating ? 'Validating...' : 'Validate Links'}
+              </button>
+            </div>
+            {results.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Validation Results</h3>
+                <ul className="space-y-3">
+                  {results.map(result => (
+                    <li key={result.id} className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="flex items-start space-x-4">
+                        <div>{result.isValid ? <CheckCircleIcon className="w-6 h-6 text-green-500" /> : <XCircleIcon className="w-6 h-6 text-red-500" />}</div>
+                        <div className="flex-1">
+                          <p className="font-mono text-sm text-gray-600 break-all">{result.url}</p>
+                          {!result.isValid && <div className="mt-2 text-red-600 text-sm">{result.errors.map((error, i) => <p key={i}>{error}</p>)}</div>}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const BulkGenerator = ({ addLinks }) => {
+        const [baseUrls, setBaseUrls] = useState('');
+        const [params, setParams] = useState({ utm_source: '', utm_medium: '', utm_campaign: '', utm_term: '', utm_content: '', utm_id: '', utm_lang: '', utm_audience: '' });
+        const [error, setError] = useState('');
+        const [successMessage, setSuccessMessage] = useState('');
+        const [isGenerating, setIsGenerating] = useState(false);
+        const [existenceWarning, setExistenceWarning] = useState({ open: false, fieldName: '', value: '' });
+        const [isChecking, setIsChecking] = useState(null);
+        
+        const cartesian = (...a) => a.reduce((acc, val) => acc.flatMap(d => val.map(e => [...d, e])), [[]]);
+
+        const checkParameterExistence = async (fieldName, value) => {
+            if (!value || !navigator.onLine || GOOGLE_SHEET_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') return false;
+            try {
+                const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+                url.searchParams.append('action', 'checkParam');
+                url.searchParams.append('fieldName', fieldName);
+                url.searchParams.append('value', value);
+                const response = await fetch(url.toString());
+                const result = await response.json();
+                if (result.exists) {
+                    setExistenceWarning({ open: true, fieldName, value });
+                    return true;
+                }
+            } catch (err) {
+                console.warn('Parameter existence check failed:', err);
+            }
+            return false;
+        };
+        
+        const handleParamChange = (e) => setParams({ ...params, [e.target.name]: e.target.value });
+        const handleParamBlur = async (e) => {
+          const { name, value } = e.target;
+          if (!value.trim()) return;
+          setIsChecking(name);
+          const values = value.split(',').map(v => v.trim()).filter(Boolean);
+          for (const term of values) {
+            if (await checkParameterExistence(name, term)) break;
+          }
+          setIsChecking(null);
+        };
+        const handleConfirmExistence = () => setExistenceWarning({ open: false, fieldName: '', value: '' });
+
+        const handleGenerate = () => {
+          setError(''); setSuccessMessage(''); setIsGenerating(true);
+          const urls = baseUrls.split('\n').map(u => u.trim()).filter(u => u);
+          if (urls.length === 0) {
+              setError('Please enter at least one Base URL.'); setIsGenerating(false); return;
+          }
+          const paramKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', 'utm_lang', 'utm_audience'];
+          const paramArrays = {}; const varyingKeys = [];
+          for (const key of paramKeys) {
+              const values = params[key] ? params[key].split(',').map(s => s.trim()).filter(Boolean) : [];
+              paramArrays[key] = values; if (values.length > 1) varyingKeys.push(key);
+          }
+          if (paramArrays.utm_source.length === 0 || paramArrays.utm_medium.length === 0 || paramArrays.utm_campaign.length === 0) {
+              setError('Source, Medium, and Campaign fields are required.'); setIsGenerating(false); return;
+          }
+          paramKeys.forEach(key => { if (paramArrays[key].length === 0) paramArrays[key] = ['']; });
+          const combinations = cartesian(...paramKeys.map(key => paramArrays[key]));
+          const newLinks = []; const invalidUrls = [];
+          urls.forEach(baseUrl => {
+              try {
+                  new URL(baseUrl);
+                  combinations.forEach((combo, comboIndex) => {
+                      const currentParams = { utm_source: combo[0] || '', utm_medium: combo[1] || '', utm_campaign: combo[2] || '', utm_term: combo[3] || '', utm_content: combo[4] || '', utm_id: combo[5] || '', utm_lang: combo[6] || '', utm_audience: combo[7] || '' };
+                      const url = new URL(baseUrl);
+                      Object.entries(currentParams).forEach(([key, value]) => { if (value) url.searchParams.set(key, value); });
+                      let variantInfo = varyingKeys.length > 0 ? varyingKeys.map(key => `${key.replace('utm_', '')}: ${currentParams[key]}`).join(' | ') : '';
+                      newLinks.push({ id: `${new Date().getTime()}-${baseUrl}-${comboIndex}`, baseUrl, utmUrl: url.toString(), params: currentParams, variantInfo: variantInfo || undefined });
+                  });
+              } catch (e) { invalidUrls.push(baseUrl); }
+          });
+          if (newLinks.length > 0) {
+              addLinks(newLinks.reverse());
+              setSuccessMessage(`${newLinks.length} links were generated and added to the list.`);
+          }
+          if (invalidUrls.length > 0) setError(`Could not process ${invalidUrls.length} invalid URLs. Please check them.`);
+          else if (newLinks.length > 0) setBaseUrls('');
+          setIsGenerating(false);
+        };
+
+        const isFormIncomplete = !baseUrls || !params.utm_source || !params.utm_medium || !params.utm_campaign || isGenerating;
+        const inputFields = [
+          { name: 'utm_source', label: 'Platform (utm_source)', placeholder: 'e.g., google, facebook', required: true },
+          { name: 'utm_medium', label: 'Traffic Type (utm_medium)', placeholder: 'e.g., cpc, email', required: true },
+          { name: 'utm_campaign', label: 'Campaign Name (utm_campaign)', placeholder: 'e.g., summer_sale, q4_promo', required: true },
+          { name: 'utm_content', label: 'Creative Version or Test (utm_content)', placeholder: 'e.g., logo_link (Optional)' },
+          { name: 'utm_term', label: 'Search Term or Segment (utm_term)', placeholder: 'e.g., running+shoes (Optional)' },
+          { name: 'utm_id', label: 'Ad System ID (utm_id)', placeholder: 'e.g., 12345 (Optional)' },
+          { name: 'utm_lang', label: 'Language (utm_lang)', placeholder: 'e.g., en-US, es (Optional)' },
+          { name: 'utm_audience', label: 'Audience (utm_audience)', placeholder: 'e.g., new_visitors (Optional)' },
+        ];
+
+        return (
+          <div className="space-y-6">
+            <ExistenceWarningDialog isOpen={existenceWarning.open} fieldName={existenceWarning.fieldName} value={existenceWarning.value} onConfirm={handleConfirmExistence}/>
+            <div>
+              <label htmlFor="baseUrls" className="block text-sm font-medium text-gray-700 mb-2">Base URLs (one per line) <span className="text-red-500">*</span></label>
+              <textarea id="baseUrls" rows={5} value={baseUrls} onChange={(e) => setBaseUrls(e.target.value)} placeholder="https://example.com/page1&#10;https://example.com/page2" className="w-full bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100" disabled={isGenerating} />
+            </div>
+            <div className="space-y-2">
+              <p className="block text-sm font-medium text-gray-700">UTM Parameters <span className="text-gray-500 font-normal">(use commas to create variations)</span></p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+              {inputFields.map(field => (
+                <div key={field.name} className="space-y-2">
+                  <label htmlFor={`bulk-${field.name}`} className="block text-sm font-medium text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
+                  <div className="relative">
+                    <input type="text" id={`bulk-${field.name}`} name={field.name} value={params[field.name] || ''} onChange={handleParamChange} onBlur={handleParamBlur} placeholder={field.placeholder} className="w-full bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100" disabled={isGenerating}/>
+                    {isChecking === field.name && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {error && <p className="text-red-600 text-sm mt-1" role="alert">{error}</p>}
+            {successMessage && <p className="text-green-600 text-sm mt-1" role="status">{successMessage}</p>}
+            <div className="text-right">
+              <button onClick={handleGenerate} disabled={isFormIncomplete} className="inline-flex items-center justify-center px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200">
+                {isGenerating && (<svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>)}
+                {isGenerating ? 'Generating...' : 'Generate & Add to List'}
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      // --- Main App Component ---
+      const App = () => {
+        const AppView = { Builder: 'builder', Validator: 'validator', BulkGenerator: 'bulk-generator' };
+        const [view, setView] = useState(AppView.Builder);
+        const [links, setLinks] = useState([]);
+
+        const addLinks = (newLinks) => { setLinks(prevLinks => [...newLinks, ...prevLinks]); };
+        const removeLink = (id) => { setLinks(prevLinks => prevLinks.filter(link => link.id !== id)); };
+        
+        const getTabClass = (tabView) => {
+          return `px-4 py-2 font-semibold rounded-t-lg transition-colors duration-200 focus:outline-none ${ view === tabView ? 'bg-white text-indigo-600 border-b-2 border-indigo-500' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50' }`;
+        };
+
+        const showLinkList = view === AppView.Builder || view === AppView.BulkGenerator;
+
+        return (
+          <div className="min-h-screen bg-gray-100 text-gray-800 font-sans">
+            <div className="container mx-auto p-4 md:p-8">
+              <header className="text-center mb-12">
+                <div className="flex justify-center items-center gap-4">
+                  <LinkIcon className="w-10 h-10 text-indigo-500" />
+                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">UTM Builder & Validator</h1>
+                </div>
+                <p className="mt-2 text-lg text-gray-600">Create and verify campaign links with confidence.</p>
+              </header>
+
+              <main className="max-w-4xl mx-auto">
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-2" aria-label="Tabs">
+                    <button onClick={() => setView(AppView.Builder)} className={getTabClass(AppView.Builder)}>UTM Builder</button>
+                    <button onClick={() => setView(AppView.BulkGenerator)} className={getTabClass(AppView.BulkGenerator)}>Bulk Generator</button>
+                    <button onClick={() => setView(AppView.Validator)} className={getTabClass(AppView.Validator)}>Link Validator</button>
+                  </nav>
+                </div>
+                
+                <div className="bg-white p-6 rounded-b-lg shadow-lg">
+                  {view === AppView.Builder && <UTMBuilder addLink={(link) => addLinks([link])} />}
+                  {view === AppView.BulkGenerator && <BulkGenerator addLinks={addLinks} />}
+                  {view === AppView.Validator && <UTMValidator />}
+                </div>
+
+                {showLinkList && <LinkList links={links} removeLink={removeLink} />}
+              </main>
+
+              <footer className="text-center mt-16 text-gray-500 text-sm">
+                <p>Powered by React. Built for modern marketing workflows.</p>
+                <p className="mt-2">
+                  To set up Google Sheets integration, see the instructions at: 
+                  <a href="https://github.com/google/generative-ai-docs/tree/main/demos/utm-builder" target="_blank" rel="noopener" className="underline text-indigo-500 hover:text-indigo-600">
+                     UTM Builder GitHub Repo
+                  </a>
+                </p>
+              </footer>
+            </div>
+          </div>
+        );
+      };
+
+      // --- Mount the App ---
+      const rootElement = document.getElementById('root');
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
