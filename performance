@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prajjwol Marketing hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'dark-bg': '#1a202c',
+              'dark-card': '#2d3748',
+              'dark-border': '#4a5568',
+              'dark-text-primary': '#e2e8f0',
+              'dark-text-secondary': '#a0aec0',
+              'light-bg': '#f7fafc',
+              'light-card': '#ffffff',
+              'light-border': '#e2e8f0',
+              'light-text-primary': '#1a202c',
+              'light-text-secondary': '#718096',
+              'brand-primary': '#4299e1',
+              'brand-secondary': '#38b2ac',
+            },
+            animation: {
+                'spin-slow': 'spin 3s linear infinite',
+            }
+          },
+        },
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.10.0",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "recharts": "https://esm.sh/recharts@^3.1.0"
+  }
+}
+</script>
+    <style>
+        .hidden { display: none; }
+        .group:hover .group-hover\:opacity-100 { opacity: 1; }
+        .prose {
+            color: var(--tw-prose-body);
+            max-width: 65ch;
+        }
+        .dark .prose {
+             --tw-prose-body: #a0aec0;
+             --tw-prose-headings: #e2e8f0;
+             --tw-prose-bold: #e2e8f0;
+        }
+        .prose strong {
+            font-weight: 600;
+        }
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+        .prose li {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg transition-colors duration-300 text-light-text-primary dark:text-dark-text-primary">
+    <div id="app-root">
+      <header id="app-header" class="bg-light-card dark:bg-dark-card shadow-md sticky top-0 z-50">
+      </header>
+      
+      <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+        <section id="data-uploader-section" class="bg-light-card dark:bg-dark-card p-4 sm:p-6 rounded-lg shadow-md space-y-6">
+        </section>
+        
+        <div id="dashboard-view">
+        </div>
+
+        <div id="forecasting-view" class="hidden">
+        </div>
+
+        <section id="ai-insights-section" class="bg-light-card dark:bg-dark-card rounded-lg shadow-md">
+        </section>
+      </main>
+
+      <footer class="text-center py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+        Prajjwol Bhattarai &copy; 2025
+      </footer>
+    </div>
+
+    <script type="module">
+        import { GoogleGenAI } from "@google/genai";
+        
+        // --- ICONS (SVG Strings) ---
+        const icons = {
+            sun: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+            moon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+            signal: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-brand-primary"><path d="M2 20h.01"></path><path d="M7 20v-4"></path><path d="M12 20v-8"></path><path d="M17 20V8"></path><path d="M22 4v16"></path></svg>`,
+            layoutDashboard: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>`,
+            trendingUp: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
+            bot: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2 text-brand-primary"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
+            botLoading: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-brand-primary animate-spin-slow"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
+            send: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>`,
+            key: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-brand-secondary"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>`,
+            warning: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+            download: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
+            upload: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`,
+            googleSheets: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" class="w-6 h-6"><path fill="#188038" d="M18 28H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v10h10v12a2 2 0 0 1-2 2z"></path><path fill="#20a144" d="m20 2l8 8h-8V2z"></path><path fill="#eef9f2" d="M21 17h-8v-2h8v2zm-8 4h8v-2h-8v2zm8-6h-8v-2h8v2z"></path></svg>`,
+            info: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 dark:text-gray-500"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
+            plusCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-green-500 hover:text-green-700"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`,
+            minusCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-red-500 hover:text-red-700"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>`,
+            arrowUpCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-gray-500 hover:text-brand-primary"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16" transform="rotate(-90 12 12)"></polyline></svg>`,
+            arrowDownCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-gray-500 hover:text-brand-primary"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8" transform="rotate(90 12 12)"></polyline></svg>`,
+            google: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-red-500"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C14.03,4.73 15.69,5.36 16.95,6.45L19.05,4.36C17.2,2.79 14.86,2 12.19,2C6.92,2 2.71,6.62 2.71,12C2.71,17.38 6.92,22 12.19,22C17.6,22 21.54,18.33 21.54,12.27C21.54,11.75 21.48,11.43 21.35,11.1Z"></path></svg>`,
+            meta: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 text-blue-600"><path d="M12,2.04C6.5,2.04 2,6.54,2,12.04C2,17.04 5.67,21.23 10.44,21.94V14.87H7.56V12.04H10.44V9.81C10.44,7.04 12.13,5.44 14.63,5.44C15.82,5.44 16.94,5.63 16.94,5.63V8.01H15.65C14.33,8.01 13.9,8.73 13.9,9.97V12.04H16.8L16.36,14.87H13.9V21.94C18.33,21.23 22,17.04 22,12.04C22,6.54 17.5,2.04 12,2.04Z"></path></svg>`,
+            linkedin: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 text-blue-800"><path d="M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19M18.5,18.5V13.2A3.26,3.26 0 0,0 15.24,9.94C14.39,9.94 13.4,10.43 13,11.11V10.13H10.13V18.5H13V13.74C13,12.83 13.35,11.93 14.31,11.93C15.27,11.93 15.62,12.83 15.62,13.74V18.5H18.5M6.88,8.56A1.68,1.68 0 0,0 8.56,6.88C8.56,6 7.78,5.2 6.88,5.2C6,5.2 5.2,6 5.2,6.88C5.2,7.78 6,8.56 6.88,8.56M8.27,18.5V10.13H5.5V18.5H8.27Z"></path></svg>`,
+            tiktok: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" class="w-5 h-5 text-black dark:text-white"><path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2.19c-.863.009-1.745-.166-2.615-.49a5.02 5.02 0 0 1-2.5-1.808v5.226a2.5 2.5 0 1 0-2.5 2.5V3.109a2.502 2.502 0 0 0-4.43-1.422A2.5 2.5 0 0 0 1 5.5v2.66h2V5.5a.5.5 0 0 1 .5-.5c.145 0 .285.05.4.14L5 6.66v4.61a2.5 2.5 0 1 0 2.5 2.5V.03Z"></path></svg>`,
+            reddit: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-orange-500"><path d="M12 0C7.5 0 2.2 4.5 2.2 10c0 3.7 2 6.8 4.9 8.5L5.7 24l4.1-2.3c1 .2 2 .3 3.1.3 5.5 0 9.8-4.5 9.8-10S17.5 0 12 0zm-1.1 14.8c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm3.7-3.3c-.6.6-1.5.6-2.1 0l-3-3c-.6-.6-.6-1.5 0-2.1.6-.6 1.5-.6 2.1 0l3 3c.6.6.6 1.6 0 2.1zm-1.6 3.3c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/></svg>`,
+            spotify: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-green-500"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.19 14.32c-.22.36-.69.46-1.05.24-2.99-1.82-6.72-2.24-11.13-1.23-.42.1-.84-.15-.94-.57s.15-.84.57-.94c4.85-1.09 9.03-.62 12.35 1.43.36.22.46.69.24 1.05zm1.2-2.71c-.27.45-.85.59-1.3.32-3.4-2.05-8.52-2.62-12.44-1.44-.5.15-1.02-.19-1.17-.68s.19-1.02.68-1.17c4.4-.1.97 4.9 2.5 8.78 2.45.45.27.59.85.32 1.3zm.1-2.88c-4.08-2.38-10.8-2.13-14.84-1.18-.58.14-1.18-.28-1.32-.86s.28-1.18.86-1.32c4.47-.95 11.75-.68 16.42 2.01.54.31.74.99.43 1.53s-.99.74-1.53.43z"/></svg>`,
+            platformDefault: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-gray-400"><path d="M2 20h.01"></path><path d="M7 20v-4"></path><path d="M12 20v-8"></path><path d="M17 20V8"></path><path d="M22 4v16"></path></svg>`,
+        };
+
+        const platformIconsMap = {
+            'Google Ads': icons.google,
+            'Meta Ads': icons.meta,
+            'LinkedIn Ads': icons.linkedin,
+            'TikTok Ads': icons.tiktok,
+            'Reddit Ads': icons.reddit,
+            'Spotify Ads': icons.spotify,
+        };
+        
+        // --- MOCK DATA ---
+        const initialCampaigns = [
+          { id: 1, name: 'Q3 Lead Gen - Search', platform: 'Google Ads', status: 'Active', spend: 25000, impressions: 500000, clicks: 20000, conversions: 1200, roas: 5.1, cpc: 1.25, ctr: 4.0, channel: 'Paid Search', source: 'google.com', contentType: 'Text Ad', date: '2024-08-05', adSetName: 'Top of Funnel', signups: 3000, sqls: 1500, customers: 1000, onboarded: 950, churnedCustomers: 50 },
+          { id: 2, name: 'Summer Sale - Retargeting', platform: 'Meta Ads', status: 'Active', spend: 18000, impressions: 800000, clicks: 15000, conversions: 950, roas: 6.2, cpc: 1.20, ctr: 1.88, channel: 'Paid Social', source: 'facebook.com', contentType: 'Carousel Ad', date: '2024-07-20', adSetName: 'Bottom of Funnel', signups: 2000, sqls: 1100, customers: 900, onboarded: 850, churnedCustomers: 30 },
+          { id: 3, name: 'B2B Webinar Promotion', platform: 'LinkedIn Ads', status: 'Ended', spend: 12000, impressions: 150000, clicks: 3000, conversions: 200, roas: 4.0, cpc: 4.00, ctr: 2.0, channel: 'Paid Social', source: 'linkedin.com', contentType: 'Sponsored Content', date: '2024-06-15', adSetName: 'Mid-Funnel Content', signups: 500, sqls: 250, customers: 150, onboarded: 140, churnedCustomers: 15 },
+          { id: 4, name: 'Brand Awareness - Gen Z', platform: 'TikTok Ads', status: 'Active', spend: 35000, impressions: 2500000, clicks: 75000, conversions: 1500, roas: 3.5, cpc: 0.47, ctr: 3.0, channel: 'Paid Social', source: 'tiktok.com', contentType: 'Video Ad', date: '2024-08-10', adSetName: 'Awareness Campaign', signups: 4000, sqls: 1800, customers: 1400, onboarded: 1300, churnedCustomers: 80 },
+          { id: 5, name: 'Community Engagement', platform: 'Reddit Ads', status: 'Paused', spend: 5000, impressions: 100000, clicks: 2500, conversions: 50, roas: 2.0, cpc: 2.00, ctr: 2.5, channel: 'Organic Social', source: 'reddit.com', contentType: 'Community Post', date: '2024-05-25', adSetName: 'Community Building', signups: 100, sqls: 60, customers: 40, onboarded: 30, churnedCustomers: 8 },
+          { id: 6, name: 'Podcast Sponsorships', platform: 'Spotify Ads', status: 'Active', spend: 8000, impressions: 300000, clicks: 1200, conversions: 100, roas: 4.8, cpc: 6.67, ctr: 0.4, channel: 'Paid Audio', source: 'spotify.com', contentType: 'Audio Ad', date: '2024-07-30', adSetName: 'Audio Branding', signups: 200, sqls: 120, customers: 90, onboarded: 90, churnedCustomers: 5 },
+          { id: 7, name: 'Q3 Brand - Display', platform: 'Google Ads', status: 'Active', spend: 22000, impressions: 1200000, clicks: 6000, conversions: 400, roas: 3.9, cpc: 3.67, ctr: 0.5, channel: 'Paid Display', source: 'google.com', contentType: 'Banner Ad', date: '2024-07-10', adSetName: 'Display Awareness', signups: 800, sqls: 450, customers: 350, onboarded: 300, churnedCustomers: 25 },
+          { id: 8, name: 'Holiday Promo - Carousel Ads', platform: 'Meta Ads', status: 'Paused', spend: 15000, impressions: 600000, clicks: 12000, conversions: 800, roas: 5.5, cpc: 1.25, ctr: 2.0, channel: 'Paid Social', source: 'instagram.com', contentType: 'Carousel Ad', date: '2024-06-28', adSetName: 'Seasonal Promotion', signups: 1500, sqls: 900, customers: 750, onboarded: 700, churnedCustomers: 40 },
+        ];
+        
+        const ALL_POSSIBLE_STAGES = [
+            { key: 'impressions', name: 'Impressions' }, { key: 'clicks', name: 'Clicks' }, { key: 'signups', name: 'Sign-ups' },
+            { key: 'conversions', name: 'Conversions' }, { key: 'sqls', name: 'SQLs' }, { key: 'customers', name: 'Customers' }, { key: 'onboarded', name: 'Onboarded' },
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let state = {
+            theme: 'dark',
+            activeView: 'dashboard',
+            campaigns: [],
+            geminiApiKey: '',
+            tempGeminiApiKey: '',
+            googleClientId: '',
+            scriptUrl: '',
+            isGapiReady: false,
+            isSignedIn: false,
+            isFetchingSheets: false,
+            dataUploaderError: null,
+            dataUploaderSuccess: null,
+            isAiLoading: false,
+            aiError: null,
+            aiResponse: '',
+            aiPrompt: '',
+            funnelStages: ['impressions', 'clicks', 'conversions', 'customers'],
+            funnelPlatformFilter: 'All',
+            forecastSpendIncrease: 0,
+            forecastAvgDealSize: 5000,
+            forecastAvgAnnualValue: 2000,
+            chartInstances: {},
+        };
+
+        // --- UTILITY FUNCTIONS ---
+        const formatCurrency = (amount, compact = false) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: compact ? 'compact' : 'standard', maximumFractionDigits: compact ? 1 : 2 }).format(amount);
+        const formatNumber = (amount) => new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(amount);
+        const setState = (newState) => {
+            state = { ...state, ...newState };
+            render();
+        };
+
+        // --- RENDER FUNCTIONS ---
+        const render = () => {
+            document.documentElement.classList.toggle('dark', state.theme === 'dark');
+            renderHeader();
+            renderDataUploader();
+            renderAiInsights();
+            
+            if (state.activeView === 'dashboard') {
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                document.getElementById('forecasting-view').classList.add('hidden');
+                renderDashboard();
+            } else {
+                document.getElementById('dashboard-view').classList.add('hidden');
+                document.getElementById('forecasting-view').classList.remove('hidden');
+                renderForecastingHub();
+            }
+        };
+
+        const renderHeader = () => {
+            const header = document.getElementById('app-header');
+            const navs = [
+                { name: 'Dashboard', view: 'dashboard', icon: icons.layoutDashboard },
+                { name: 'ROI & Forecasting Hub', view: 'forecasting', icon: icons.trendingUp },
+            ];
+            header.innerHTML = `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        ${icons.signal}
+                        <h1 class="ml-3 text-lg sm:text-xl font-bold text-light-text-primary dark:text-dark-text-primary hidden sm:block">Prajjwol Marketing hub</h1>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <nav class="flex space-x-1 sm:space-x-2 bg-gray-200/50 dark:bg-dark-bg p-1 rounded-lg">
+                            ${navs.map(nav => `
+                                <button data-view="${nav.view}" class="nav-button flex items-center px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors duration-200 ${state.activeView === nav.view ? 'bg-white dark:bg-dark-card shadow text-brand-primary' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary'}">
+                                ${nav.icon}
+                                ${nav.name}
+                                </button>
+                            `).join('')}
+                        </nav>
+                        <button id="theme-toggle-button" class="p-2 rounded-full text-light-text-secondary dark:text-dark-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" aria-label="Toggle theme">
+                            ${state.theme === 'dark' ? icons.sun : icons.moon}
+                        </button>
+                    </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderDataUploader = () => {
+            const container = document.getElementById('data-uploader-section');
+            container.innerHTML = `
+                <div>
+                    <h2 class="text-xl font-bold">Import & Analyze Your Data</h2>
+                    <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">Choose a method to import your campaign data for analysis.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-light-border dark:border-dark-border rounded-lg p-4 space-y-3">
+                        <div class="flex items-center gap-2">${icons.googleSheets}<h3 class="font-semibold">Connect to Google Sheets</h3></div>
+                        <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary">Automate your workflow by fetching data directly. You'll need a Google Client ID and an Apps Script deployment URL.</p>
+                        <div>
+                            <label class="text-xs font-medium" for="google-client-id">Google Client ID</label>
+                            <input id="google-client-id" type="text" placeholder="Your Google Client ID" value="${state.googleClientId}" class="mt-1 w-full px-3 py-2 text-sm rounded-md bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand-primary">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium" for="script-url">Apps Script URL</label>
+                            <input id="script-url" type="text" placeholder="Your Apps Script URL" value="${state.scriptUrl}" class="mt-1 w-full px-3 py-2 text-sm rounded-md bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand-primary">
+                        </div>
+                        <div>
+                            ${!state.isSignedIn ? `
+                                <button id="google-auth-button" ${!state.isGapiReady || state.isFetchingSheets ? 'disabled' : ''} class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-brand-primary text-white hover:bg-blue-600 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed">
+                                    ${state.isFetchingSheets ? 'Fetching...' : 'Connect & Fetch Data'}
+                                </button>
+                            ` : `
+                                <button id="google-signout-button" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-gray-500 text-white hover:bg-gray-600 transition-colors">
+                                    Disconnect
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                    <div class="border border-light-border dark:border-dark-border rounded-lg p-4 space-y-3 flex flex-col justify-center">
+                        <div class="flex items-center gap-2">${icons.upload}<h3 class="font-semibold">Upload via CSV</h3></div>
+                        <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary">Manually upload a CSV file. Use our template for the correct format.</p>
+                        <div class="flex items-center gap-2 flex-shrink-0 pt-4">
+                            <button id="download-template-button" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-gray-200 dark:bg-dark-border text-light-text-primary dark:text-dark-text-primary hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">${icons.download} Template</button>
+                            <button id="upload-csv-button" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-brand-secondary text-white hover:bg-teal-600 transition-colors">Upload CSV</button>
+                            <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                        </div>
+                    </div>
+                </div>
+                <div id="data-uploader-messages" class="mt-4 text-sm">
+                    ${state.dataUploaderError ? `<div class="p-3 rounded-md bg-red-500/10 text-red-500 flex items-center gap-2">${icons.warning} ${state.dataUploaderError}</div>` : ''}
+                    ${state.dataUploaderSuccess ? `<div class="p-3 rounded-md bg-green-500/10 text-green-500">${state.dataUploaderSuccess}</div>` : ''}
+                </div>
+            `;
+        };
+
+        const renderAiInsights = () => {
+            const container = document.getElementById('ai-insights-section');
+            if (!state.geminiApiKey) {
+                container.innerHTML = `
+                    <div class="p-4 sm:p-6">
+                        <div class="flex flex-col items-center justify-center bg-gray-100/50 dark:bg-dark-bg p-6 rounded-lg text-center">
+                            ${icons.key}
+                            <h3 class="text-lg font-bold">Enter Your Gemini API Key</h3>
+                            <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">To use the AI features, please provide your Google Gemini API key.</p>
+                            <div class="mt-4 flex flex-col sm:flex-row gap-2 w-full max-w-md">
+                                <input id="temp-api-key-input" type="password" placeholder="Enter your API key here" class="w-full px-4 py-2 rounded-md bg-light-border dark:bg-dark-border focus:ring-2 focus:ring-brand-primary focus:outline-none transition-colors">
+                                <button id="save-api-key-button" class="px-4 py-2 rounded-md bg-brand-primary text-white hover:bg-blue-600 transition-colors flex-shrink-0">Save Key</button>
+                            </div>
+                            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">Your key is stored only in your browser's local storage.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const suggestions = [ "Which campaigns have the highest ROAS?", "Identify underperforming campaigns and suggest improvements.", "Summarize the performance of Meta Ads campaigns.", "What's the best platform for CTR?", ];
+            
+            let responseContent = '';
+            if (state.isAiLoading) {
+                responseContent = `<div class="flex items-center justify-center h-full"><div class="flex flex-col items-center">${icons.botLoading}<p class="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">Analyzing data...</p></div></div>`;
+            } else if (state.aiResponse) {
+                responseContent = `<div class="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">${state.aiResponse.replace(/\n/g, '<br />')}</div>`;
+            } else if (!state.aiError) {
+                responseContent = `
+                    <div class="text-center text-light-text-secondary dark:text-dark-text-secondary flex flex-col justify-center h-full">
+                        <p>Ask a question about your campaign data.</p>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                            ${suggestions.map(s => `<button class="ai-suggestion-button p-2 bg-light-border dark:bg-dark-border rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" data-prompt="${s}">${s}</button>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <h2 class="text-xl font-bold mb-4 flex items-center p-4 pb-0">${icons.bot} AI-Powered Insights</h2>
+                <div class="flex flex-col h-full p-4 pt-0">
+                    ${state.aiError ? `
+                        <div class="p-3 mb-4 rounded-md bg-red-500/10 text-red-500 flex items-start gap-2">
+                            ${icons.warning}
+                            <div>
+                                <p class="font-semibold">Analysis Failed</p>
+                                <p class="text-sm">${state.aiError}</p>
+                                ${state.aiError.includes("API key not valid") ? `<button id="clear-api-key-button" class="mt-2 text-sm font-bold underline">Enter new key</button>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="flex-grow bg-gray-100/50 dark:bg-dark-bg p-4 rounded-md mb-4 min-h-[200px] overflow-y-auto">
+                        ${responseContent}
+                    </div>
+                    <form id="ai-prompt-form" class="flex items-center gap-2">
+                        <input type="text" id="ai-prompt-input" value="${state.aiPrompt}" placeholder="e.g., Suggest budget reallocations..." class="w-full px-4 py-2 rounded-md bg-light-border dark:bg-dark-border focus:ring-2 focus:ring-brand-primary focus:outline-none transition-colors" ${state.isAiLoading ? 'disabled' : ''}>
+                        <button type="submit" ${state.isAiLoading || !state.aiPrompt ? 'disabled' : ''} class="p-2 rounded-md bg-brand-primary text-white disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors flex-shrink-0">${icons.send}</button>
+                    </form>
+                    <div class="text-right mt-2">
+                        <button id="clear-api-key-button" class="text-xs text-gray-500 hover:text-red-500 dark:hover:text-red-400 underline transition-colors">Change API Key</button>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderDashboard = () => {
+            const container = document.getElementById('dashboard-view');
+            // Calculate KPIs
+            const totals = state.campaigns.reduce((acc, c) => {
+                acc.spend += c.spend;
+                acc.impressions += c.impressions;
+                acc.clicks += c.clicks;
+                acc.conversions += c.conversions;
+                acc.revenue += c.spend * c.roas;
+                return acc;
+            }, { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 });
+
+            const overallRoas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+            const overallCtr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
+
+            const kpis = [
+                { title: 'ROAS', value: `${overallRoas.toFixed(1)}x` }, { title: 'Spend', value: formatCurrency(totals.spend, true) },
+                { title: 'Impressions', value: formatNumber(totals.impressions) }, { title: 'Clicks', value: formatNumber(totals.clicks) },
+                { title: 'Conversions', value: formatNumber(totals.conversions) }, { title: 'CTR', value: `${overallCtr.toFixed(2)}%` },
+            ];
+            
+            const kpiCardsHtml = kpis.map(kpi => `
+                <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                    <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary truncate">${kpi.title}</h3>
+                    <p class="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mt-1">${kpi.value}</p>
+                </div>
+            `).join('');
+            
+            const platforms = ['All', ...Array.from(new Set(state.campaigns.map(c => c.platform)))];
+            const availableFunnelStages = ALL_POSSIBLE_STAGES.filter(s => !state.funnelStages.includes(s.key));
+
+            container.innerHTML = `
+                <section id="kpis">
+                    <h2 class="text-xl font-bold mb-4">Overall Performance</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">${kpiCardsHtml}</div>
+                </section>
+                <section id="performance-trends" class="mt-8">
+                   <h2 class="text-xl font-bold mb-4">Performance Visualizations</h2>
+                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+                          <h3 class="font-semibold mb-2">Spend vs. Revenue by Platform</h3>
+                          <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-4">Crucial for identifying your most profitable channels at a glance.</p>
+                          <div class="h-80"><canvas id="spend-revenue-chart"></canvas></div>
+                      </div>
+                      <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md col-span-1 lg:col-span-2">
+                            <div class="flex justify-between items-center">
+                               <h3 class="font-semibold">Interactive Conversion Funnel</h3>
+                               <select id="funnel-platform-filter" class="text-sm bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-md px-2 py-1 focus:ring-2 focus:ring-brand-primary focus:outline-none">
+                                ${platforms.map(p => `<option value="${p}" ${state.funnelPlatformFilter === p ? 'selected' : ''}>${p}</option>`).join('')}
+                               </select>
+                            </div>
+                           <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-1 mb-4">Build and visualize your custom customer journey to identify drop-off points.</p>
+                           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div class="md:col-span-2 h-96"><canvas id="funnel-chart"></canvas></div>
+                              <div class="space-y-4">
+                                  <div>
+                                      <h4 class="font-semibold text-sm mb-2">Your Funnel</h4>
+                                      <ul id="current-funnel-stages" class="space-y-2"></ul>
+                                  </div>
+                                  <div>
+                                      <h4 class="font-semibold text-sm mb-2">Available Stages</h4>
+                                      <ul id="available-funnel-stages" class="space-y-2">
+                                        ${availableFunnelStages.map(stage => `
+                                            <li class="flex items-center justify-between bg-light-bg dark:bg-dark-bg p-2 rounded-md text-sm">
+                                                <span>${stage.name}</span>
+                                                <button class="funnel-add-button" data-stage="${stage.key}">${icons.plusCircle}</button>
+                                            </li>
+                                        `).join('')}
+                                      </ul>
+                                  </div>
+                              </div>
+                           </div>
+                      </div>
+                       <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+                          <h3 class="font-semibold mb-2">Spend Distribution</h3>
+                          <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-4">Shows how your budget is allocated across platforms to verify strategic alignment.</p>
+                          <div class="h-80"><canvas id="spend-distribution-chart"></canvas></div>
+                      </div>
+                       <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+                          <h3 class="font-semibold mb-2">ROAS Over Time</h3>
+                          <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-4">Monitors the overall efficiency and profitability of your advertising efforts month by month.</p>
+                          <div class="h-80"><canvas id="roas-trend-chart"></canvas></div>
+                      </div>
+                   </div>
+                </section>
+                <section id="campaigns" class="mt-8">
+                  <h2 class="text-xl font-bold mb-4">Campaign Details</h2>
+                  <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md overflow-x-auto">
+                      <table class="min-w-full divide-y divide-light-border dark:divide-dark-border">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50">
+                            <tr>
+                                ${['Campaign', 'Status', 'Channel', 'Ad Set', 'Source', 'Content', 'Spend', 'Impressions', 'Clicks', 'Conversions', 'ROAS', 'CPC', 'CTR'].map(h => `<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody id="campaigns-table-body" class="bg-light-card dark:bg-dark-card divide-y divide-light-border dark:divide-dark-border"></tbody>
+                      </table>
+                  </div>
+                </section>
+            `;
+            renderCampaignsTable();
+            renderDashboardCharts();
+            renderFunnelEditor();
+        };
+
+        const renderCampaignsTable = () => {
+            const statusColors = { Active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', Paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', Ended: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', };
+            const tableBody = document.getElementById('campaigns-table-body');
+            if(!tableBody) return;
+            tableBody.innerHTML = state.campaigns.map(c => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-6 w-6">${platformIconsMap[c.platform] || icons.platformDefault}</div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">${c.name}</div>
+                                <div class="text-sm text-light-text-secondary dark:text-dark-text-secondary">${c.platform}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[c.status]}">${c.status}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-light-text-secondary dark:text-dark-text-secondary">${c.channel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-light-text-secondary dark:text-dark-text-secondary">${c.adSetName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-light-text-secondary dark:text-dark-text-secondary">${c.source}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-light-text-secondary dark:text-dark-text-secondary">${c.contentType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${formatCurrency(c.spend)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${c.impressions.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${c.clicks.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${c.conversions.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">${c.roas.toFixed(1)}x</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${formatCurrency(c.cpc)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${c.ctr.toFixed(2)}%</td>
+                </tr>
+            `).join('');
+        };
+        
+        const renderFunnelEditor = () => {
+            const container = document.getElementById('current-funnel-stages');
+            if (!container) return;
+            container.innerHTML = state.funnelStages.map((stageKey, index) => {
+                const stage = ALL_POSSIBLE_STAGES.find(s => s.key === stageKey);
+                return `
+                    <li class="flex items-center justify-between bg-light-bg dark:bg-dark-bg p-2 rounded-md text-sm">
+                        <span>${stage?.name}</span>
+                        <div class="flex items-center gap-1">
+                            <button class="funnel-move-button" data-index="${index}" data-direction="up" ${index === 0 ? 'disabled' : ''}><span class="${index === 0 ? 'opacity-25': ''}">${icons.arrowUpCircle}</span></button>
+                            <button class="funnel-move-button" data-index="${index}" data-direction="down" ${index === state.funnelStages.length - 1 ? 'disabled' : ''}><span class="${index === state.funnelStages.length - 1 ? 'opacity-25': ''}">${icons.arrowDownCircle}</span></button>
+                            <button class="funnel-remove-button" data-stage="${stageKey}">${icons.minusCircle}</button>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        };
+
+        const renderForecastingHub = () => {
+            const container = document.getElementById('forecasting-view');
+            
+            // Calculations
+            const multiplier = 1 + (state.forecastSpendIncrease / 100);
+            const forecastedCampaigns = state.campaigns.map(c => {
+                const scaledSpend = c.spend * multiplier;
+                const efficiencyFactor = c.roas > 0 ? 1 : 0;
+                return {
+                    ...c, spend: scaledSpend, impressions: c.impressions * multiplier * efficiencyFactor, clicks: c.clicks * multiplier * efficiencyFactor,
+                    conversions: c.conversions * multiplier * efficiencyFactor, signups: (c.signups || 0) * multiplier * efficiencyFactor,
+                    sqls: (c.sqls || 0) * multiplier * efficiencyFactor, customers: (c.customers || 0) * multiplier * efficiencyFactor,
+                };
+            });
+            const totals = forecastedCampaigns.reduce((acc, c) => {
+                acc.spend += c.spend; acc.impressions += c.impressions; acc.clicks += c.clicks; acc.conversions += c.conversions;
+                acc.revenue += c.spend * c.roas; acc.sqls += c.sqls || 0; acc.customers += c.customers || 0; acc.churnedCustomers += c.churnedCustomers || 0;
+                return acc;
+            }, { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0, sqls: 0, customers: 0, churnedCustomers: 0 });
+
+            const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+            const cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
+            const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
+            const cac = totals.customers > 0 ? totals.spend / totals.customers : 0;
+            const cpm = totals.impressions > 0 ? (totals.spend / totals.impressions) * 1000 : 0;
+            const cpsql = totals.sqls > 0 ? totals.spend / totals.sqls : 0;
+            const pipelineValue = totals.sqls * state.forecastAvgDealSize;
+            const arr = totals.customers * state.forecastAvgAnnualValue;
+            const churnRate = totals.customers > 0 ? (totals.churnedCustomers / totals.customers) * 100 : 0;
+            
+            const kpis = [
+                { title: 'Forecasted ROAS', value: `${roas.toFixed(2)}x`, change: `+${state.forecastSpendIncrease}% spend`, description: 'Return On Ad Spend (Revenue / Spend). Shows profitability.' },
+                { title: 'Forecasted Spend', value: formatCurrency(totals.spend, true), change: `Total ad spend`, description: 'Total amount spent on advertising.'},
+                { title: 'Forecasted Revenue', value: formatCurrency(totals.revenue, true), change: 'Projected revenue', description: 'Total revenue generated from campaigns.' },
+                { title: 'CAC', value: formatCurrency(cac), change: 'Customer Acquisition Cost', description: 'The average cost to acquire one new customer (Spend / Customers).' },
+                { title: 'CPC', value: formatCurrency(cpc), change: 'Cost Per Click', description: 'The average amount you pay for each click on your ad.' },
+                { title: 'CTR', value: `${ctr.toFixed(2)}%`, change: 'Click-Through Rate', description: 'Percentage of impressions that result in a click (Clicks / Impressions).' },
+                { title: 'CPM', value: formatCurrency(cpm), change: 'Cost Per 1,000 Impressions', description: 'The average cost for one thousand ad impressions.' },
+                { title: 'Cost Per SQL', value: formatCurrency(cpsql), change: `Based on ${totals.sqls.toLocaleString()} SQLs`, description: 'The average cost to generate one Sales-Qualified Lead (Spend / SQLs).' },
+                { title: 'Pipeline Value', value: formatCurrency(pipelineValue, true), change: 'Potential revenue', description: 'Estimated value of the sales pipeline generated (SQLs * Avg. Deal Size).' },
+                { title: 'Forecasted ARR', value: formatCurrency(arr, true), change: 'Annual Recurring Revenue', description: 'Projected annual recurring revenue from new customers (Customers * Avg. Annual Value).' },
+                { title: 'Churn Rate', value: `${churnRate.toFixed(2)}%`, change: 'Customer churn', description: 'Percentage of customers who churned in the period (Churned / Total Customers).' },
+            ];
+
+            const kpiCardHtml = (kpi) => `
+                <div class="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary truncate">${kpi.title}</h3>
+                    ${kpi.description ? `<div class="relative group">${icons.info}<div class="absolute bottom-full mb-2 -ml-20 w-48 p-2 text-xs text-white bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center">${kpi.description}</div></div>` : ''}
+                  </div>
+                  <div class="mt-1 flex items-baseline justify-between">
+                    <p class="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary">${kpi.value}</p>
+                    <span class="text-sm font-semibold text-gray-500">${kpi.change}</span>
+                  </div>
+                </div>`;
+            
+            const originalTotals = state.campaigns.reduce((acc, c) => {
+                acc.revenue += c.spend * c.roas; acc.sqls += c.sqls || 0; acc.customers += c.customers || 0;
+                return acc;
+            }, { revenue: 0, sqls: 0, customers: 0 });
+            
+            const platformData = (() => {
+                const platformMap = {};
+                state.campaigns.forEach(c => {
+                    if (!platformMap[c.platform]) platformMap[c.platform] = { originalSpend: 0, originalRevenue: 0, forecastedSpend: 0, forecastedRevenue: 0 };
+                    platformMap[c.platform].originalSpend += c.spend;
+                    platformMap[c.platform].originalRevenue += c.spend * c.roas;
+                });
+                forecastedCampaigns.forEach(c => {
+                    if (!platformMap[c.platform]) platformMap[c.platform] = { originalSpend: 0, originalRevenue: 0, forecastedSpend: 0, forecastedRevenue: 0 };
+                    platformMap[c.platform].forecastedSpend += c.spend;
+                    platformMap[c.platform].forecastedRevenue += c.spend * c.roas;
+                });
+                return Object.entries(platformMap).map(([platform, data]) => ({ platform, ...data }));
+            })();
+
+            container.innerHTML = `
+                <div class="space-y-8">
+                    <section class="bg-light-card dark:bg-dark-card p-6 rounded-lg shadow-md">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                            <div class="lg:col-span-2">
+                                <h2 class="text-xl font-bold flex items-center"><span class="w-6 h-6 mr-2 text-brand-secondary">${icons.trendingUp}</span>Spend Forecasting Controls</h2>
+                                <p class="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">Simulate the impact of changing your ad spend.</p>
+                            </div>
+                            <div>
+                                <label for="avg-deal-size-input" class="block text-sm font-medium mb-1">Avg. Deal Size ($)</label>
+                                <input id="avg-deal-size-input" type="number" value="${state.forecastAvgDealSize}" class="w-full px-3 py-2 text-sm rounded-md bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand-primary">
+                            </div>
+                            <div>
+                                <label for="avg-annual-value-input" class="block text-sm font-medium mb-1">Avg. Annual Value ($)</label>
+                                <input id="avg-annual-value-input" type="number" value="${state.forecastAvgAnnualValue}" class="w-full px-3 py-2 text-sm rounded-md bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand-primary">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                            ${[0, 10, 20].map(p => `<button data-spend-increase="${p}" class="forecast-spend-button flex-1 py-2 px-4 rounded-md font-semibold text-sm transition-colors ${state.forecastSpendIncrease === p ? 'bg-brand-primary text-white shadow' : 'bg-gray-200 dark:bg-dark-border hover:bg-gray-300 dark:hover:bg-gray-600'}">${p === 0 ? 'Current' : `+${p}% Spend`}</button>`).join('')}
+                        </div>
+                    </section>
+                    <section>
+                        <h2 class="text-xl font-bold mb-4">Forecasted Metrics</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">${kpis.slice(0, 6).map(kpiCardHtml).join('')}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">${kpis.slice(6).map(kpiCardHtml).join('')}</div>
+                    </section>
+                    <section>
+                        <h2 class="text-xl font-bold mb-4">Forecast Visualizations</h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                            <div class="lg:col-span-3 bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+                                <h3 class="font-semibold mb-2">Current vs. Forecast</h3>
+                                <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-4">Projected growth based on a ${state.forecastSpendIncrease}% spend increase.</p>
+                                <div class="h-96"><canvas id="forecast-chart"></canvas></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+                                <h3 class="font-semibold mb-2">Forecast Breakdown</h3>
+                                <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-4">Comparison of performance by platform.</p>
+                                <div class="h-96 overflow-y-auto">
+                                    <table class="min-w-full text-sm">
+                                        <thead class="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase">
+                                            <tr><th class="py-2 px-2 text-left">Platform</th><th class="py-2 px-2 text-right">Spend</th><th class="py-2 px-2 text-right">Revenue</th></tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-light-border dark:divide-dark-border">
+                                        ${platformData.map(d => `
+                                            <tr>
+                                                <td class="py-2 px-2 whitespace-nowrap"><div class="flex items-center gap-2">${platformIconsMap[d.platform] || icons.platformDefault} <span class="font-medium">${d.platform}</span></div></td>
+                                                <td class="py-2 px-2 text-right"><div class="font-semibold">${formatCurrency(d.forecastedSpend, true)}</div><div class="text-xs text-gray-500">${formatCurrency(d.originalSpend, true)}</div></td>
+                                                <td class="py-2 px-2 text-right"><div class="font-semibold">${formatCurrency(d.forecastedRevenue, true)}</div><div class="text-xs text-gray-500">${formatCurrency(d.originalRevenue, true)}</div></td>
+                                            </tr>
+                                        `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            `;
+            renderForecastChart({
+                forecasted: totals,
+                original: originalTotals,
+                avgDealSize: state.forecastAvgDealSize,
+            });
+        };
+        
+        // --- CHARTING FUNCTIONS ---
+        const destroyChart = (id) => {
+            if (state.chartInstances[id]) {
+                state.chartInstances[id].destroy();
+                delete state.chartInstances[id];
+            }
+        };
+        
+        const createOrUpdateChart = (id, config) => {
+            destroyChart(id);
+            const ctx = document.getElementById(id);
+            if(ctx) {
+                state.chartInstances[id] = new Chart(ctx.getContext('2d'), config);
+            }
+        };
+        
+        const getChartOptions = (isDarkMode) => ({
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: isDarkMode ? '#a0aec0' : '#718096' } },
+                tooltip: {
+                    backgroundColor: isDarkMode ? 'rgba(45, 55, 72, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: isDarkMode ? '#e2e8f0' : '#1a202c',
+                    bodyColor: isDarkMode ? '#a0aec0' : '#718096',
+                    borderColor: isDarkMode ? '#4a5568' : '#e2e8f0',
+                    borderWidth: 1,
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: isDarkMode ? '#a0aec0' : '#718096', font: { size: 10 } },
+                    grid: { color: isDarkMode ? 'rgba(74, 85, 104, 0.4)' : 'rgba(226, 232, 240, 0.6)' }
+                },
+                y: {
+                    ticks: { color: isDarkMode ? '#a0aec0' : '#718096', font: { size: 10 } },
+                    grid: { color: isDarkMode ? 'rgba(74, 85, 104, 0.4)' : 'rgba(226, 232, 240, 0.6)' }
+                }
+            }
+        });
+
+        const renderDashboardCharts = () => {
+            const platformData = state.campaigns.reduce((acc, c) => {
+              if (!acc[c.platform]) { acc[c.platform] = { name: c.platform, spend: 0, revenue: 0 }; }
+              acc[c.platform].spend += c.spend;
+              acc[c.platform].revenue += c.spend * c.roas;
+              return acc;
+            }, {});
+            const spendRevenueData = Object.values(platformData);
+
+            const isDark = state.theme === 'dark';
+            const commonOptions = getChartOptions(isDark);
+            
+            createOrUpdateChart('spend-revenue-chart', {
+                type: 'bar',
+                data: {
+                    labels: spendRevenueData.map(d => d.name),
+                    datasets: [
+                        { label: 'Spend', data: spendRevenueData.map(d => d.spend), backgroundColor: '#38b2ac' },
+                        { label: 'Revenue', data: spendRevenueData.map(d => d.revenue), backgroundColor: '#4299e1' }
+                    ]
+                },
+                options: { ...commonOptions, indexAxis: 'y' }
+            });
+            
+            // Funnel Chart - Stacked Bar for Funnel visual
+            const funnelCampaigns = state.funnelPlatformFilter === 'All'
+                ? state.campaigns
+                : state.campaigns.filter(c => c.platform === state.funnelPlatformFilter);
+
+            const funnelTotals = funnelCampaigns.reduce((acc, c) => {
+                state.funnelStages.forEach(stageKey => {
+                    acc[stageKey] = (acc[stageKey] || 0) + (c[stageKey] || 0);
+                });
+                return acc;
+            }, {});
+
+            const funnelData = state.funnelStages.map(stageKey => ({
+                name: ALL_POSSIBLE_STAGES.find(s => s.key === stageKey)?.name || 'Unknown',
+                value: funnelTotals[stageKey] || 0
+            }));
+
+            const funnelLabels = funnelData.map(d => d.name);
+            const funnelValues = funnelData.map(d => d.value);
+            const maxFunnelValue = funnelValues.length > 0 ? funnelValues[0] : 0; // First stage is the max
+            const funnelPadding = funnelValues.map(v => (maxFunnelValue - v) / 2);
+
+            const funnelTooltip = {
+                ...commonOptions.plugins.tooltip,
+                filter: (tooltipItem) => tooltipItem.datasetIndex === 1,
+                callbacks: {
+                    label: (context) => ` ${context.chart.data.labels[context.dataIndex]}: ${context.raw.toLocaleString()}`,
+                }
+            };
+            
+            createOrUpdateChart('funnel-chart', {
+                type: 'bar',
+                data: {
+                    labels: funnelLabels,
+                    datasets: [
+                        { label: 'Padding', data: funnelPadding, backgroundColor: 'transparent' },
+                        { label: 'Value', data: funnelValues, backgroundColor: ['#4299e1', '#38b2ac', '#ed8936', '#9f7aea', '#fbbf24', '#f87171'] }
+                    ]
+                },
+                options: { 
+                    ...commonOptions, 
+                    indexAxis: 'y', 
+                    plugins: { legend: { display: false }, tooltip: funnelTooltip },
+                    scales: {
+                        x: { ...commonOptions.scales.x, stacked: true, grid: { display: false }, ticks: { display: false } },
+                        y: { ...commonOptions.scales.y, stacked: true }
+                    }
+                }
+            });
+
+            createOrUpdateChart('spend-distribution-chart', {
+                type: 'pie',
+                data: {
+                    labels: spendRevenueData.map(d => d.name),
+                    datasets: [{ data: spendRevenueData.map(d => d.spend), backgroundColor: ['#4299e1', '#38b2ac', '#ed8936', '#9f7aea', '#fbbf24', '#f87171'] }]
+                },
+                options: { ...commonOptions, scales: {} }
+            });
+            
+            // ROAS Trend
+            const monthlyData = {};
+            state.campaigns.forEach(c => {
+                const month = new Date(c.date).toLocaleString('default', { month: 'short' });
+                if (!monthlyData[month]) monthlyData[month] = { spend: 0, revenue: 0 };
+                monthlyData[month].spend += c.spend;
+                monthlyData[month].revenue += c.spend * c.roas;
+            });
+            const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const trendData = Object.entries(monthlyData)
+                .map(([date, data]) => ({ date, ROAS: data.spend > 0 ? data.revenue / data.spend : 0, }))
+                .sort((a, b) => monthOrder.indexOf(a.date) - monthOrder.indexOf(b.date));
+
+            createOrUpdateChart('roas-trend-chart', {
+                type: 'line',
+                data: {
+                    labels: trendData.map(d => d.date),
+                    datasets: [{ label: 'ROAS', data: trendData.map(d => d.ROAS), borderColor: '#4299e1', tension: 0.1 }]
+                },
+                options: commonOptions
+            });
+        };
+        
+        const renderForecastChart = ({ forecasted, original, avgDealSize }) => {
+             const forecastChartData = [
+                { name: 'Revenue', current: original.revenue, forecast: forecasted.revenue },
+                { name: 'Customers', current: original.customers, forecast: forecasted.customers },
+                { name: 'Pipeline', current: original.sqls * avgDealSize, forecast: forecasted.sqls * avgDealSize },
+            ];
+            createOrUpdateChart('forecast-chart', {
+                type: 'bar',
+                data: {
+                    labels: forecastChartData.map(d => d.name),
+                    datasets: [
+                        { label: 'Current', data: forecastChartData.map(d => d.current), backgroundColor: '#a0aec0' },
+                        { label: 'Forecast', data: forecastChartData.map(d => d.forecast), backgroundColor: '#4299e1' }
+                    ]
+                },
+                options: getChartOptions(state.theme === 'dark')
+            });
+        };
+        
+        // --- EVENT HANDLERS & LOGIC ---
+        const handleToggleTheme = () => setState({ theme: state.theme === 'dark' ? 'light' : 'dark' });
+        const handleNavClick = (view) => setState({ activeView: view });
+        
+        const handleDataUploaded = (newCampaigns, source) => {
+            setState({ campaigns: newCampaigns, dataUploaderSuccess: `${newCampaigns.length} campaigns loaded successfully from ${source}!`, dataUploaderError: null });
+        };
+        
+        const handleSaveApiKey = () => {
+            const key = document.getElementById('temp-api-key-input').value.trim();
+            if (key) {
+                localStorage.setItem('gemini-api-key', key);
+                setState({ geminiApiKey: key, aiError: null });
+            }
+        };
+
+        const handleClearApiKey = () => {
+            localStorage.removeItem('gemini-api-key');
+            setState({ geminiApiKey: '', tempGeminiApiKey: '' });
+        };
+
+        const handleAiSubmit = async (prompt) => {
+            if (!prompt || state.isAiLoading || !state.geminiApiKey) return;
+            setState({ isAiLoading: true, aiResponse: '', aiError: null });
+            
+            try {
+                const result = await getMarketingInsights(prompt, state.campaigns, state.geminiApiKey);
+                setState({ aiResponse: result, isAiLoading: false, aiPrompt: '' });
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                setState({ aiError: errorMessage, isAiLoading: false });
+            }
+        };
+        
+        const handleDownloadTemplate = () => {
+            const headers = "id,name,platform,status,spend,impressions,clicks,conversions,roas,cpc,ctr,channel,source,contentType,adSetName,date,signups,sqls,customers,onboarded,churnedCustomers";
+            const exampleRow = `1,Q4 Promo,"Google Ads",Active,5000,100000,5000,250,6.0,1.00,5.0,"Paid Search","google.com","Search Ad","TOF Bofu",2024-10-05,500,250,100,80,10`;
+            const csvContent = `data:text/csv;charset=utf-8,${headers}\n${exampleRow}`;
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "campaign_template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+        
+        const handleFileChange = (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = e.target?.result;
+                    const parsedData = parseCSV(text);
+                    handleDataUploaded(parsedData, 'CSV');
+                } catch (err) { setState({ dataUploaderError: err.message, dataUploaderSuccess: null }); }
+            };
+            reader.onerror = () => setState({ dataUploaderError: 'Failed to read file.', dataUploaderSuccess: null });
+            reader.readAsText(file);
+        };
+
+        const parseCSV = (text) => {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) throw new Error("CSV must have a header and at least one data row.");
+            const header = lines[0].trim().split(',').map(h => h.trim());
+            const headerIndexMap = header.reduce((acc, h, i) => ({...acc, [h]: i}), {});
+
+            return lines.slice(1).map((rowStr, index) => {
+                const values = (rowStr.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || []).map(v => v.replace(/"/g, ''));
+                const campaign = {};
+                for (const key in headerIndexMap) {
+                    const value = values[headerIndexMap[key]];
+                    const numKeys = ['spend', 'impressions', 'clicks', 'conversions', 'roas', 'cpc', 'ctr', 'signups', 'sqls', 'customers', 'onboarded', 'churnedCustomers'];
+                    if (numKeys.includes(key)) {
+                        campaign[key] = parseFloat(value) || 0;
+                    } else {
+                        campaign[key] = value || (key === 'status' ? 'Paused' : 'N/A');
+                    }
+                }
+                campaign.id = parseInt(values[headerIndexMap.id]) || index;
+                return campaign;
+            });
+        };
+
+        const handleFunnelChange = (action, payload) => {
+            let newStages = [...state.funnelStages];
+            if (action === 'add') {
+                newStages.push(payload.stage);
+            } else if (action === 'remove') {
+                newStages = newStages.filter(s => s !== payload.stage);
+            } else if (action === 'move') {
+                const { index, direction } = payload;
+                const item = newStages[index];
+                newStages.splice(index, 1);
+                const newIndex = direction === 'up' ? index - 1 : index + 1;
+                newStages.splice(newIndex, 0, item);
+            }
+            setState({ funnelStages: newStages });
+        };
+        
+        // --- API & GAPI LOGIC ---
+        const getMarketingInsights = async (userQuery, campaignData, apiKey) => {
+            const ai = new GoogleGenAI({ apiKey });
+            const promptData = campaignData.map(({ name, platform, spend, conversions, roas, ctr }) => ({ name, platform, spend, conversions, roas, ctr }));
+            const systemInstruction = "You are a world-class performance marketing analyst. Analyze campaign data and provide concise, data-driven insights. Use bullet points for recommendations. Base your analysis strictly on the provided JSON data.";
+            const contents = `Here is the campaign data:\n\`\`\`json\n${JSON.stringify(promptData, null, 2)}\n\`\`\`\n\nBased on this data, please answer: "${userQuery}"`;
+            
+            try {
+                const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents, config: { systemInstruction } });
+                return response.text;
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                if (error.message.includes('API key not valid')) {
+                    throw new Error("Your Gemini API key is not valid. Please check it and try again.");
+                }
+                throw new Error(`Failed to get insights from Gemini: ${error.message}`);
+            }
+        };
+        
+        let tokenClient = null;
+        const initTokenClient = () => {
+             if (!state.googleClientId) {
+                setState({ dataUploaderError: "Google Client ID is missing.", dataUploaderSuccess: null });
+                return;
+            }
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: state.googleClientId,
+                    scope: 'https://www.googleapis.com/auth/drive.readonly',
+                    callback: (tokenResponse) => {
+                        if (tokenResponse.error) {
+                            setState({ dataUploaderError: `Google Sign-In Error: ${tokenResponse.error}`, dataUploaderSuccess: null });
+                            return;
+                        }
+                        setState({ isSignedIn: true });
+                        fetchDataFromSheets(tokenResponse.access_token);
+                    },
+                });
+            } catch(e) {
+                 setState({ dataUploaderError: "Failed to initialize Google Auth. Is your Client ID correct?", dataUploaderSuccess: null });
+            }
+        };
+        
+        const fetchDataFromSheets = (accessToken) => {
+            if (!state.scriptUrl) {
+                setState({ dataUploaderError: "Apps Script URL is not set.", dataUploaderSuccess: null });
+                return;
+            }
+            setState({ isFetchingSheets: true, dataUploaderError: null, dataUploaderSuccess: null });
+
+            fetch(`${state.scriptUrl}?accessToken=${accessToken}`)
+            .then(response => response.ok ? response.json() : response.json().then(err => { throw new Error(err.error || 'Failed to fetch data from script.') }))
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                if (!Array.isArray(data) || data.length === 0) throw new Error("No data returned. Ensure sheets are named correctly and not empty.");
+                handleDataUploaded(data, 'Google Sheets');
+            })
+            .catch(err => setState({ dataUploaderError: `Google Sheets Error: ${err.message}`}))
+            .finally(() => setState({ isFetchingSheets: false }));
+        }
+
+        // --- GLOBAL EVENT LISTENER ---
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            // Header
+            if (target.id === 'theme-toggle-button') handleToggleTheme();
+            if (target.classList.contains('nav-button')) handleNavClick(target.dataset.view);
+            // Data Uploader
+            if (target.id === 'download-template-button') handleDownloadTemplate();
+            if (target.id === 'upload-csv-button') document.getElementById('csv-file-input').click();
+            if (target.id === 'google-auth-button') {
+                localStorage.setItem('google-client-id', state.googleClientId);
+                localStorage.setItem('google-script-url', state.scriptUrl);
+                initTokenClient();
+                if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+            }
+            if (target.id === 'google-signout-button') setState({ isSignedIn: false, dataUploaderSuccess: 'Signed out from Google.' });
+            // AI
+            if (target.id === 'save-api-key-button') handleSaveApiKey();
+            if (target.id === 'clear-api-key-button') handleClearApiKey();
+            if (target.classList.contains('ai-suggestion-button')) {
+                const prompt = target.dataset.prompt;
+                setState({ aiPrompt: prompt });
+                handleAiSubmit(prompt);
+            }
+            // Funnel
+            if (target.classList.contains('funnel-add-button')) handleFunnelChange('add', { stage: target.dataset.stage });
+            if (target.classList.contains('funnel-remove-button')) handleFunnelChange('remove', { stage: target.dataset.stage });
+            if (target.classList.contains('funnel-move-button')) {
+                handleFunnelChange('move', { index: parseInt(target.dataset.index), direction: target.dataset.direction });
+            }
+            // Forecasting
+            if (target.classList.contains('forecast-spend-button')) {
+                setState({ forecastSpendIncrease: Number(target.dataset.spendIncrease) });
+            }
+        });
+
+        document.body.addEventListener('change', (e) => {
+            const target = e.target;
+            if (target.id === 'csv-file-input') handleFileChange(e);
+            if (target.id === 'google-client-id') setState({ googleClientId: target.value });
+            if (target.id === 'script-url') setState({ scriptUrl: target.value });
+            if (target.id === 'avg-deal-size-input') setState({ forecastAvgDealSize: Number(target.value) });
+            if (target.id === 'avg-annual-value-input') setState({ forecastAvgAnnualValue: Number(target.value) });
+            if (target.id === 'funnel-platform-filter') setState({ funnelPlatformFilter: target.value });
+        });
+        
+        document.body.addEventListener('input', (e) => {
+            if (e.target.id === 'ai-prompt-input') setState({ aiPrompt: e.target.value });
+        });
+
+        document.body.addEventListener('submit', (e) => {
+            if (e.target.id === 'ai-prompt-form') {
+                e.preventDefault();
+                handleAiSubmit(state.aiPrompt);
+            }
+        });
+
+        // --- INITIALIZATION ---
+        const init = () => {
+            const storedTheme = localStorage.getItem('theme');
+            const storedApiKey = localStorage.getItem('gemini-api-key');
+            const storedClientId = localStorage.getItem('google-client-id');
+            const storedScriptUrl = localStorage.getItem('google-script-url');
+
+            setState({
+                theme: storedTheme || 'dark',
+                geminiApiKey: storedApiKey || '',
+                campaigns: initialCampaigns,
+                googleClientId: storedClientId || '',
+                scriptUrl: storedScriptUrl || '',
+            });
+            
+            gapi.load('client:oauth2', () => {
+                 gapi.client.init({}).then(() => {
+                    setState({ isGapiReady: true });
+                 });
+            });
+        };
+
+        init();
+
+    </script>
+</body>
+</html>
