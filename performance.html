@@ -196,8 +196,13 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+        
+        .submit-button:disabled {
+            background-color: var(--gray-500);
+            cursor: not-allowed;
+        }
 
-        .submit-button:hover {
+        .submit-button:hover:not(:disabled) {
             background-color: var(--blue-700);
         }
         
@@ -264,29 +269,8 @@
     </style>
 </head>
 <body class="bg-light-bg dark:bg-dark-bg transition-colors duration-300 text-light-text-primary dark:text-dark-text-primary">
-    <div id="app-root">
-      <header id="app-header" class="bg-light-card dark:bg-dark-card shadow-md sticky top-0 z-50">
-      </header>
-      
-      <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
-        <section id="data-uploader-section" class="bg-light-card dark:bg-dark-card p-4 sm:p-6 rounded-lg shadow-md space-y-6">
-        </section>
-        
-        <div id="dashboard-view">
-        </div>
-
-        <div id="forecasting-view" class="hidden">
-        </div>
-
-        <section id="ai-insights-section" class="bg-light-card dark:bg-dark-card rounded-lg shadow-md">
-        </section>
-      </main>
-
-      <footer class="text-center py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-        Prajjwol Bhattarai &copy; 2025
-      </footer>
-    </div>
-<!-- Timer Display -->
+    
+    <!-- Timer Display -->
     <div id="timer-container" class="timer-container">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -430,17 +414,40 @@
                 
                 emailError.classList.add('hidden');
                 emailInput.classList.remove('error');
-                
-                // Pretend to send data
+
+                const submitButton = feedbackForm.querySelector('button[type="submit"]');
                 const formData = new FormData(feedbackForm);
-                const data = Object.fromEntries(formData.entries());
-                console.log("Feedback submitted:", data);
+                const googleAppScriptUrl = 'YOUR_GOOGLE_APP_SCRIPT_URL_HERE'; // <-- IMPORTANT: Replace this URL
+
+                if (googleAppScriptUrl === 'YOUR_GOOGLE_APP_SCRIPT_URL_HERE') {
+                    alert('Configuration error: The Google App Script URL has not been set.');
+                    return;
+                }
                 
-                hideModal(feedbackModal);
-                bonusDisplay.classList.add('hidden');
-                sessionState = 'EXTENDED';
-                timeLeft = EXTENDED_TIME;
-                startTimer();
+                // Disable button and show loading state
+                submitButton.disabled = true;
+                submitButton.textContent = 'Submitting...';
+
+                fetch(googleAppScriptUrl, {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Google Sheet Response:", data);
+                    hideModal(feedbackModal);
+                    bonusDisplay.classList.add('hidden');
+                    sessionState = 'EXTENDED';
+                    timeLeft = EXTENDED_TIME;
+                    startTimer();
+                })
+                .catch(error => {
+                    console.error('Error submitting to Google Sheet:', error);
+                    alert('Could not submit feedback due to a network error. Please try again later.');
+                    // Re-enable button
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Acknowledge & Get 10 More Minutes';
+                });
             });
 
             // Initial setup
@@ -451,6 +458,28 @@
             startTimer();
         });
     </script>
+<div id="app-root">
+      <header id="app-header" class="bg-light-card dark:bg-dark-card shadow-md sticky top-0 z-50">
+      </header>
+      
+      <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+        <section id="data-uploader-section" class="bg-light-card dark:bg-dark-card p-4 sm:p-6 rounded-lg shadow-md space-y-6">
+        </section>
+        
+        <div id="dashboard-view">
+        </div>
+
+        <div id="forecasting-view" class="hidden">
+        </div>
+
+        <section id="ai-insights-section" class="bg-light-card dark:bg-dark-card rounded-lg shadow-md">
+        </section>
+      </main>
+
+      <footer class="text-center py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+        Prajjwol Bhattarai &copy; 2025
+      </footer>
+    </div>
 
     <script type="module">
         import { GoogleGenAI } from "@google/genai";
@@ -598,7 +627,7 @@
             container.innerHTML = `
                 <div>
                     <h2 class="text-xl font-bold">Import & Analyze Your Data</h2>
-                    <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">Choose a method to import your campaign data for analysis.<p>DO NOT UPLOAD ANY CONFIDENTIAL DATA OF ANY KIND</p></p>
+                    <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">Choose a method to import your campaign data for analysis.<p> DO NOT UPLOAD ANY CONFIDENTIAL DATA OF ANY KIND </p></p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="border border-light-border dark:border-dark-border rounded-lg p-4 space-y-3">
