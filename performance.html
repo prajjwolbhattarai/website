@@ -44,6 +44,199 @@
 }
 </script>
     <style>
+ :root {
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --red-500: #ef4444;
+            --green-100: #d1fae5;
+            --green-600: #059669;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+
+        #main-content.blurred {
+            filter: blur(4px);
+            transition: filter 0.5s ease-in-out;
+        }
+
+        .timer-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            color: var(--gray-800);
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+        }
+
+        .timer-container svg {
+            height: 1.25rem;
+            width: 1.25rem;
+            margin-right: 0.5rem;
+        }
+        
+        #bonus-time {
+            margin-left: 0.75rem;
+            padding-left: 0.75rem;
+            border-left: 1px solid var(--gray-300);
+            color: var(--blue-600);
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-box {
+            background-color: var(--white);
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2rem;
+            max-width: 32rem;
+            width: calc(100% - 2rem);
+            transform: translateY(0);
+            opacity: 1;
+            animation: fade-in-up 0.3s ease-out forwards;
+        }
+
+        .modal-box h2 {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .modal-box p {
+            color: var(--gray-600);
+            margin: 0 0 1.5rem 0;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: var(--blue-600);
+            box-shadow: 0 0 0 2px var(--blue-600);
+        }
+        
+        .form-input.error {
+            border-color: var(--red-500);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: var(--red-500);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .acknowledgement-box {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            background-color: var(--gray-100);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+        }
+
+        .acknowledgement-box p {
+            margin: 0;
+            padding: 0;
+            color: var(--gray-500);
+        }
+        
+        .acknowledgement-box .font-semibold { font-weight: 600; margin-bottom: 0.25rem; }
+        .acknowledgement-box .font-bold { font-weight: 700; margin-top: 0.5rem; }
+
+        .submit-button {
+            margin-top: 1.5rem;
+            width: 100%;
+            background-color: var(--blue-600);
+            color: var(--white);
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: var(--blue-700);
+        }
+        
+        .thank-you-modal .icon-container {
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 3rem;
+            width: 3rem;
+            border-radius: 9999px;
+            background-color: var(--green-100);
+        }
+
+        .thank-you-modal .icon-container svg {
+            height: 1.5rem;
+            width: 1.5rem;
+            color: var(--green-600);
+        }
+
+        .thank-you-modal { text-align: center; }
+        .thank-you-modal h2 { margin-top: 1rem; }
+        .thank-you-modal p { margin-top: 0.5rem; }
+        .thank-you-modal .final-message { color: var(--gray-800); font-weight: 500; margin-top: 1rem; }
+        
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         .hidden { display: none; }
         .group:hover .group-hover\:opacity-100 { opacity: 1; }
         .prose {
@@ -93,6 +286,171 @@
         Prajjwol Bhattarai &copy; 2025
       </footer>
     </div>
+<!-- Timer Display -->
+    <div id="timer-container" class="timer-container">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="time-left">03:00</span>
+        <span id="bonus-time">+10 min</span>
+    </div>
+
+    <!-- Main Website Content -->
+    <main id="main-content">
+        <!-- 
+            Your existing website content should be placed here.
+            This is the section that will be blurred when the timer expires.
+        -->
+    </main>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>Just a moment...</h2>
+            <p>Your initial time is up. Please provide some feedback to continue for an additional 10 minutes.</p>
+
+            <form id="feedback-form" novalidate>
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Your Name" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" id="email-input" placeholder="Your Email" class="form-input" required />
+                    <p id="email-error" class="error-message hidden"></p>
+                </div>
+                <div class="form-group">
+                    <textarea name="purpose" placeholder="Purpose of your visit..." rows="3" class="form-textarea" required></textarea>
+                </div>
+                 <div class="form-group">
+                    <textarea name="experience" placeholder="How has your experience been so far?" rows="3" class="form-textarea" required></textarea>
+                </div>
+
+                <div class="acknowledgement-box">
+                    <p class="font-semibold">Please Acknowledge:</p>
+                    <p>This project is to promote Prajjwol Bhattarai's skill set. Prajjwol Bhattarai holds the right to contact you to discuss possible collaborations.</p>
+                    <p class="font-bold">P.S. All input is viewable to Prajjwol. Do not upload confidential data as you will be liable. Hashed, fictitious, and sample data are okay.</p>
+                </div>
+              
+                <button type="submit" class="submit-button">Acknowledge & Get 10 More Minutes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Thank You Modal -->
+    <div id="thank-you-modal" class="modal-overlay hidden">
+        <div class="modal-box thank-you-modal">
+             <div class="icon-container">
+                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2>Thank You!</h2>
+            <p>Your session has ended.</p>
+            <p class="final-message">Prajjwol Bhattarai will reach you directly.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const INITIAL_TIME = 180; // 3 minutes
+            const EXTENDED_TIME = 600; // 10 minutes
+
+            let timeLeft = INITIAL_TIME;
+            let sessionState = 'INITIAL'; // 'INITIAL', 'EXTENDED', 'FINISHED'
+            let timerInterval = null;
+
+            // DOM Elements
+            const mainContent = document.getElementById('main-content');
+            const timerDisplay = document.getElementById('time-left');
+            const bonusDisplay = document.getElementById('bonus-time');
+            const feedbackModal = document.getElementById('feedback-modal');
+            const thankYouModal = document.getElementById('thank-you-modal');
+            const feedbackForm = document.getElementById('feedback-form');
+            const emailInput = document.getElementById('email-input');
+            const emailError = document.getElementById('email-error');
+            
+            const formatTime = (seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+            };
+
+            const updateTimerDisplay = () => {
+                timerDisplay.textContent = formatTime(timeLeft);
+            };
+
+            const showModal = (modalElement) => {
+                modalElement.classList.remove('hidden');
+                if (mainContent) {
+                    mainContent.classList.add('blurred');
+                }
+            };
+
+            const hideModal = (modalElement) => {
+                modalElement.classList.add('hidden');
+                if (mainContent) {
+                    mainContent.classList.remove('blurred');
+                }
+            };
+
+            const handleTimerEnd = () => {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                if (sessionState === 'INITIAL') {
+                    sessionState = 'FINISHED'; // Prevent re-triggering
+                    showModal(feedbackModal);
+                } else if (sessionState === 'EXTENDED') {
+                    sessionState = 'FINISHED';
+                    showModal(thankYouModal);
+                }
+            };
+            
+            const startTimer = () => {
+                if (timerInterval) clearInterval(timerInterval);
+
+                timerInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        handleTimerEnd();
+                    }
+                }, 1000);
+            };
+
+            feedbackForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const email = emailInput.value;
+                const emailRegex = /^\S+@\S+\.\S+$/;
+                if (!email || !emailRegex.test(email)) {
+                    emailError.textContent = 'Please enter a valid email address.';
+                    emailError.classList.remove('hidden');
+                    emailInput.classList.add('error');
+                    return;
+                }
+                
+                emailError.classList.add('hidden');
+                emailInput.classList.remove('error');
+                
+                // Pretend to send data
+                const formData = new FormData(feedbackForm);
+                const data = Object.fromEntries(formData.entries());
+                console.log("Feedback submitted:", data);
+                
+                hideModal(feedbackModal);
+                bonusDisplay.classList.add('hidden');
+                sessionState = 'EXTENDED';
+                timeLeft = EXTENDED_TIME;
+                startTimer();
+            });
+
+            // Initial setup
+            if (!mainContent) {
+                console.warn('Timer script: Element with id="main-content" not found. The blur effect will not be applied.');
+            }
+            updateTimerDisplay();
+            startTimer();
+        });
+    </script>
 
     <script type="module">
         import { GoogleGenAI } from "@google/genai";
@@ -240,7 +598,7 @@
             container.innerHTML = `
                 <div>
                     <h2 class="text-xl font-bold">Import & Analyze Your Data</h2>
-                    <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">Choose a method to import your campaign data for analysis.</p>
+                    <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">Choose a method to import your campaign data for analysis.<p>DO NOT UPLOAD ANY CONFIDENTIAL DATA OF ANY KIND</p></p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="border border-light-border dark:border-dark-border rounded-lg p-4 space-y-3">
