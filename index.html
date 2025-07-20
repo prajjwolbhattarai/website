@@ -150,7 +150,7 @@
             { label: 'Birthday', value: 'July 1, 1992' },
             { label: 'Location', value: 'Berlin, Germany' },
             { label: 'Nationality', value: 'Nepalese' },
-            { label: 'Work Permit', value: 'EU Blue Card Visa' },
+            { label: 'Work Permit', value: 'EU Blue Card' },
         ],
         hats: [
           { icon: '📈', title: 'Growth & Performance', description: 'Scaled e-commerce sales 16X, managed €100K+ monthly ad budgets, and drove 50k+ organic monthly visitors.' },
@@ -333,10 +333,10 @@ ${servicesString}
               config: { systemInstruction: getPortfolioContext() },
             });
             setChat(chatInstance);
-            setMessages([{ role: 'model', text: 'Hi! I\'m Praxis, your AI guide. Ask me anything about Prajjwol\'s experience or skills!' }]);
+            setMessages([{ role: 'model', text: 'Hi! I\'m Praxis, Prajjwol\'s AI version. Ask me anything about Prajjwol\'s experience or skills!' }]);
             setIsConfigured(true);
           } else {
-            setMessages([{ role: 'system', text: 'AI assistant is not configured. Please add an API key to the index.html file to enable this feature.' }]);
+            setMessages([{ role: 'system', text: 'I have temporarily shut down. Please contact Prajjwol for all possible answers.' }]);
             setIsConfigured(false);
           }
         }, []);
