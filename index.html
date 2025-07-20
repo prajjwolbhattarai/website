@@ -86,7 +86,7 @@
       // IMPORTANT: Paste your API key here for the chat assistant to work.
       const API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
       // IMPORTANT: Paste your Google Apps Script Web App URL here for the contact form to work.
-      const GOOGLE_APPS_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdL5c5A0qRq58W0bZiA3OQkElhTpbWQMeodvjXwN7pUrYrv5cVoSvoAFU-biVYW4xB/exec';
 
       // --- ICONS ---
       const UserIcon = ({ className }) => (
@@ -514,7 +514,7 @@ ${servicesString}
           e.preventDefault();
           if (formState === 'submitting') return;
           
-          if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+          if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwdL5c5A0qRq58W0bZiA3OQkElhTpbWQMeodvjXwN7pUrYrv5cVoSvoAFU-biVYW4xB/exec') {
             console.error("Google Apps Script URL is not configured.");
             setFormState('error');
             return;
