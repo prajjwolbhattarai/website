@@ -231,7 +231,7 @@
         { name: 'Yogesh Upreti', role: 'Fullstack Developer', text: 'Prajjwol\'s content marketing skills are unparalleled. He has a unique ability to craft compelling narratives that resonate with our audience, driving engagement and loyalty to our brand.', imageUrl: 'https://i.pravatar.cc/150?u=yogesh' },
         { name: 'Avinash Mishra', role: 'Portfolio Manager', text: 'Prajjwol\'s leadership and organization as a project manager have been essential to the success of our digital initiatives. His ability to navigate complex projects with ease ensures smooth sailing from start to finish.', imageUrl: 'https://i.pravatar.cc/150?u=avinash' },
         { name: 'Parikshya Bhattarai', role: 'CEO', text: 'Prajjwol\'s expertise in digital advertising has transformed our approach and maximized our ROI. His targeted campaigns have significantly expanded our reach and generated impressive results.', imageUrl: 'https://i.pravatar.cc/150?u=parikshya' },
-        { name: 'Ashta Koirala', role: 'Doctor', text: 'Prajjwol\'s insights in SEO have been invaluable. His deep understanding of search algorithms consistently delivers top-notch results, elevating our brand\'s visibility.', imageUrl: 'https://i.pravatar.cc/150?u=ashta' },
+        { name: 'Astha Koirala', role: 'Doctor', text: 'Prajjwol\'s insights in SEO have been invaluable. His deep understanding of search algorithms consistently delivers top-notch results, elevating our brand\'s visibility.', imageUrl: 'https://i.pravatar.cc/150?u=ashta' },
       ];
       const getPortfolioContext = () => {
           const workExperienceString = workExperience.map(w => `- ${w.title} at ${w.subtitle} (${w.date}): ${Array.isArray(w.description) ? w.description.join(', ') : w.description}`).join('\\n');
@@ -428,7 +428,7 @@ ${servicesString}
       const Intro = () => (
         <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16 text-center md:text-left">
-            <img src="https://i.pravatar.cc/150?u=prajjwol" alt={introData.name} className="w-40 h-40 md:w-48 md:h-48 rounded-full border-4 border-emerald-400/50 object-cover shadow-lg shadow-emerald-500/10" />
+            <img src="assets/img/prajjwol.jpg" alt={introData.name} className="w-40 h-40 md:w-48 md:h-48 rounded-full border-4 border-emerald-400/50 object-cover shadow-lg shadow-emerald-500/10" />
             <div className="max-w-2xl"><h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">{introData.greeting}</h1><h2 className="text-xl md:text-2xl font-semibold text-emerald-600">{introData.subtitle}</h2></div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-4 max-w-3xl mx-auto text-sm">
