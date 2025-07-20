@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Portfolio</title>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #34d399; /* emerald-400 */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #10b981; /* emerald-500 */
+      }
+      
+      /* Component-specific Animations */
+      @keyframes content-enter {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-content-enter {
+        animation: content-enter 0.6s ease-out forwards;
+      }
+
+      @keyframes chat-enter {
+        0% {
+          opacity: 0;
+          transform: scale(0.95) translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      
+      /* Skill Hexagon Styles */
+      .skill-hexagon {
+        position: relative;
+        width: 120px;
+        height: 138.56px; /* width * sqrt(3) / 2 * 1.15 */
+        margin: 0 8px 20px;
+        background-color: #fff;
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        transition: transform 0.3s ease, background-color 0.3s ease;
+      }
+      .skill-hexagon:hover {
+        transform: scale(1.1);
+        background-color: #d1fae5; /* emerald-100 */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      // The entire application logic is contained within this script tag.
+      // Babel will transpile it in the browser.
+
+      // Import GenAI library
+      import { GoogleGenAI } from 'https://esm.sh/@google/genai';
+
+      // --- CONFIGURATION ---
+      // IMPORTANT: Paste your API key here for the chat assistant to work.
+      const API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
+      // IMPORTANT: Paste your Google Apps Script Web App URL here for the contact form to work.
+      const GOOGLE_APPS_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+      // --- ICONS ---
+      const UserIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      );
+      const BriefcaseIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      );
+      const CodeIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      );
+      const MailIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      );
+      const GraduationCapIcon = ({ className }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path d="M12 14l6.16-3.422A12.083 12.083 0 0122 12V18a2 2 0 01-2 2H4a2 2 0 01-2-2v-6c0-1.933 1.567-3.5 3.5-3.5A3.5 3.5 0 019 12l3 1.667z" />
+          </svg>
+      );
+      const XIcon = ({ className }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+      );
+      const SparklesIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 16l-4 4v-4l6.293-6.293a1 1 0 011.414 0L17 11z" />
+        </svg>
+      );
+      const PaperAirplaneIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+      );
+      const QuoteIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-9.57v7.391c-2.836 0-5.021 2.214-5.021 5.197v4.373h-3.962zm-14.017 0v-7.391c0-5.704 3.748-9.57 8.983-9.57v7.391c-2.853 0-5.021 2.214-5.021 5.197v4.373h-3.962z"/>
+        </svg>
+      );
+      const DownloadIcon = ({ className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      );
+
+      // --- DATA CONSTANTS ---
+      const introData = {
+        name: 'Prajjwol Bhattarai',
+        greeting: "Hi, I’m Prajjwol Bhattarai",
+        subtitle: "A Full-Stack Marketer, Growth Strategist, and Creator",
+        personalInfo: [
+            { label: 'Birthday', value: 'July 1, 1992' },
+            { label: 'Location', value: 'Berlin, Germany' },
+            { label: 'Nationality', value: 'Nepalese' },
+            { label: 'Work Permit', value: 'EU Blue Card Visa' },
+        ],
+        hats: [
+          { icon: '📈', title: 'Growth & Performance', description: 'Scaled e-commerce sales 16X, managed €100K+ monthly ad budgets, and drove 50k+ organic monthly visitors.' },
+          { icon: '🤖', title: 'Automation Architect', description: 'Built a reverse recruiting system and automated marketing workflows using Google Apps Script, Make.com, and various APIs.' },
+          { icon: '🎨', title: 'Creative Director', description: 'Directed and produced one of Nepal’s most-viewed comedy shows, alongside commercials and brand films.' },
+          { icon: '📊', title: 'Data & Analytics', description: 'Transformed raw data into actionable insights to drive smarter decisions and optimize campaign ROI by over 20%.' },
+          { icon: '💼', title: 'Sales & Partnerships', description: 'Closed deals and built relationships with C-level executives across Europe and the US for major conferences and events.' },
+          { icon: '☁️', title: 'SaaS Innovator', description: 'Pioneered the transformation of a cloud SaaS into a decentralized platform, saving clients over $6M.' },
+        ],
+        proudOf: [
+          { icon: '✅', text: 'Built an AI-powered reverse recruiting system analyzing thousands of job ads and automating outreach at scale.' },
+          { icon: '✅', text: 'Scaled an e-commerce business 16X MRR to become the country’s #1 cake shop (online and offline).' },
+          { icon: '✅', text: 'Automated marketing workflows using Google Sheets, Adobe Suite, Canva API, Make, and GPT Playground.' },
+          { icon: '✅', text: 'Hosted podcasts and connected with audiences through meaningful conversations.' },
+        ],
+        funFacts: [
+          { icon: '🎤', text: 'Former standup comedian—still fluent in sarcasm.' },
+          { icon: '🎶', text: 'Wrote a song and made a sketch on my first date… married her. ❤️' },
+          { icon: '🎥', text: 'Occasionally spotted acting in movies and commercials.' },
+        ]
+      };
+      const highlights = [
+          { value: '€100k+', label: 'Monthly Ad Spend Managed' },
+          { value: '30+', label: 'Tech-Stack Expertise' },
+          { value: '16X', label: 'Record E-commerce Growth' },
+          { value: '30+', label: 'Products Launched' },
+      ];
+      const contactInfo = [
+          { label: 'LinkedIn', value: 'linkedin.com/in/prajjwolbhattarai', href: 'https://linkedin.com/in/prajjwolbhattarai', icon: <BriefcaseIcon className="w-6 h-6 text-green-700" /> },
+          { label: 'Website', value: 'prajjwolbhattarai.com.np', href: 'http://prajjwolbhattarai.com.np', icon: <CodeIcon className="w-6 h-6 text-green-700" /> },
+      ];
+      const achievements = [
+          'Managed monthly ad spends exceeding €100,000, achieving an average ROI increase of 20%.',
+          'Scaled an e-commerce business by 16X and led teams of up to 25 professionals to consistently exceed targets.',
+          'Launched over 30 products with impactful creative assets using tools like Adobe Suite and Figma.',
+          'Increased website traffic by 50% in 3 months, reaching 50,000 monthly visitors.',
+          'Boosted lead generation by 20%, adding 50 high-quality leads monthly.',
+          'Directed a website redesign, reducing bounce rate by 40% and improving session duration by 30%.',
+          'Saved $50,000 annually by optimizing ad spend and reducing cost per acquisition by 15%.',
+          'Grew organic traffic by 50%, reaching 150,000 monthly visitors through an effective content strategy.',
+      ];
+      const workExperience = [
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Senior Growth Manager (Upcoming)', subtitle: 'NAO Co-investment GmbH, Berlin', date: 'Starts 06/2025', description: 'Responsible for performance marketing and building an automated UTM protocol tool to ensure accurate lead source tracking and attribution.' },
+          { icon: <UserIcon className="w-5 h-5" />, title: 'Parental Break', subtitle: 'Family Time', date: '10/2024 - 05/2025', description: 'Taking a dedicated period for family.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Growth & Operations Manager', subtitle: 'Tribe Growth GmbH, Berlin', date: '07/2024 - 09/2024', description: 'Built a reverse recruiting system and successfully launched 5 GTM products.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Sr. Marketing Specialist', subtitle: 'Recrunova LLC, Texas (Remote)', date: '10/2023 - 06/2024', description: 'Built entire company website from scratch, driving over 50,000 monthly visitors and generating 50+ high-quality leads per month organically.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Performance Marketing Manager', subtitle: 'Pocket Studio, Nepal', date: '07/2021 - 02/2023', description: 'Organized 12+ C-level executive conferences, saved clients over $6M, and optimized a monthly ad budget of €100K+.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'HoD, Consultation', subtitle: '88 Collective, Nepal', date: '06/2019 - 11/2020', description: 'Managed €100K+ in paid advertising, improved visibility through SEO, and organized stalls for over 70 expos in India and Nepal.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Assistant Marketing Manager', subtitle: 'VMAG, Nepal', date: '08/2018 - 06/2019', description: "Directed and produced Nepal's most-viewed comedy show, significantly boosting brand awareness and audience engagement." },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Business Development Manager', subtitle: 'Urban Girl, Nepal', date: '04/2017 - 05/2018', description: 'Scaled e-commerce sales by 16X, added $600K+ in annual revenue through distribution expansion, and implemented a new CRM marketing system.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Event Onboarding Manager', subtitle: 'EBCG, Slovakia (Remote)', date: '02/2016 - 04/2017', description: 'Successfully closed conference and event partnerships with C-level executives across Europe and the US.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Assistant Program Coordinator', subtitle: 'Nepal Share, Nepal', date: '04/2015 - 10/2015', description: 'Led the post-earthquake reconstruction efforts for homes in remote regions of Nepal.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Marketing Executive', subtitle: 'Rasuna Engineering, Nepal', date: '03/2010 - 04/2015', description: 'Delivered successful BTL marketing campaigns and played a key role in closing five large-scale infrastructure contracts.' },
+          { icon: <BriefcaseIcon className="w-5 h-5" />, title: 'Freelance Graphic Designer', subtitle: 'Remote', date: '05/2011 - 03/2017', description: 'Designed branding materials, increasing brand recognition by 40%. Developed social media visuals, driving a 50% increase in engagement.' },
+      ];
+      const education = [
+          { icon: <GraduationCapIcon className="w-5 h-5" />, title: 'Bachelor\'s in Development Studies', subtitle: 'Kathmandu University (KU), Nepal', date: '2014 - 2018', description: 'Gained profound knowledge in international development theories, socio-economic research, and project management.' },
+      ];
+      const coreCompetencies = [
+        'GTM Strategy', 'Performance Marketing', 'Data Analysis', 'Project Management', 'Creative Direction', 'A/B Testing', 'Team Leadership', 'SEO/SEM', 'CRO', 'Content Strategy', 'Sales & CRM', 'Automation'
+      ];
+      const toolsAndPlatforms = [
+          { title: 'Performance Marketing', skills: ['Google Ads, Meta Ads, SA360', 'Google Search Console', 'Programmatic Ads'] },
+          { title: 'Analytics & Data', skills: ['Google Analytics, Tableau', 'Zoho Analytics', 'Excel, Google Sheets'] },
+          { title: 'Creative', skills: ['Adobe Suite (PS, AI, PR, AE)', 'Figma, FigJam', 'Canva API'] },
+          { title: 'Content & SEO', skills: ['HubSpot, Mailchimp', 'Semrush, Ahrefs', 'Content & Keyword Strategy'] },
+          { title: 'Automation', skills: ['Make.com, Zapier', 'Google Apps Script', 'GPT & LLM APIs'] },
+          { title: 'Project Management', skills: ['Jira, Asana, Trello', 'Agile Methodologies', 'Notion'] },
+      ];
+      const services = [
+          'Digital Marketing Manager', 'Performance Marketing Manager', 'Senior Digital Marketing Specialist', 'Marketing Analytics Manager',
+          'Growth Marketing Manager', 'Project Manager (Digital Marketing)', 'Digital Advertising Manager', 'Social Media Manager',
+          'SEO Specialist/Manager', 'Email Marketing Manager', 'E-commerce Marketing Manager', 'Digital Marketing Consultant',
+      ];
+      const testimonialsData = [
+        { name: 'Edrees Elrachidi', role: 'CFO & Founder', text: 'Prajjwol\'s expertise in digital marketing has been instrumental in our success. His strategic approach and dedication have propelled our brand to new heights.', imageUrl: 'https://i.pravatar.cc/150?u=edress' },
+        { name: 'Upakar Pandey', role: 'Partnerships Specialist', text: 'Prajjwol\'s meticulous attention to detail and strategic approach to marketing analytics have been instrumental in optimizing our campaigns. His recommendations consistently drive results and exceed expectations.', imageUrl: 'https://i.pravatar.cc/150?u=upakar' },
+        { name: 'Yogesh Upreti', role: 'Fullstack Developer', text: 'Prajjwol\'s content marketing skills are unparalleled. He has a unique ability to craft compelling narratives that resonate with our audience, driving engagement and loyalty to our brand.', imageUrl: 'https://i.pravatar.cc/150?u=yogesh' },
+        { name: 'Avinash Mishra', role: 'Portfolio Manager', text: 'Prajjwol\'s leadership and organization as a project manager have been essential to the success of our digital initiatives. His ability to navigate complex projects with ease ensures smooth sailing from start to finish.', imageUrl: 'https://i.pravatar.cc/150?u=avinash' },
+        { name: 'Parikshya Bhattarai', role: 'CEO', text: 'Prajjwol\'s expertise in digital advertising has transformed our approach and maximized our ROI. His targeted campaigns have significantly expanded our reach and generated impressive results.', imageUrl: 'https://i.pravatar.cc/150?u=parikshya' },
+        { name: 'Ashta Koirala', role: 'Doctor', text: 'Prajjwol\'s insights in SEO have been invaluable. His deep understanding of search algorithms consistently delivers top-notch results, elevating our brand\'s visibility.', imageUrl: 'https://i.pravatar.cc/150?u=ashta' },
+      ];
+      const getPortfolioContext = () => {
+          const workExperienceString = workExperience.map(w => `- ${w.title} at ${w.subtitle} (${w.date}): ${Array.isArray(w.description) ? w.description.join(', ') : w.description}`).join('\\n');
+          const skillsString = coreCompetencies.map(s => `- ${s}`).join('\\n');
+          const toolsString = toolsAndPlatforms.map(s => `### ${s.title}\\n- ${s.skills.join('\\n- ')}`).join('\\n\\n');
+          const achievementsString = achievements.map(a => `- ${a}`).join('\\n');
+          const servicesString = services.map(s => `- ${s}`).join('\\n');
+          const testimonialsString = testimonialsData.map(t => `- ${t.name} (${t.role}) says: "${t.text}"`).join('\\n');
+          return `You are a helpful AI assistant for Prajjwol Bhattarai's personal portfolio website. Your name is "Praxis".
+Your purpose is to answer questions from visitors about Prajjwol's skills, experience, and projects based *only* on the information provided below.
+Be friendly, concise, and professional. If you don't know the answer from the provided context, politely say that you don't have that information. Do not make things up.
+# Personal Details
+- Name: ${introData.name} - Tagline: ${introData.subtitle} - Location: ${introData.personalInfo.find(p => p.label === 'Location')?.value}
+- Professional Summary: 14+ years of digital marketing expertise with over 1,000 campaigns and a proven track record of scaling businesses, including 16X revenue growth. An effective team leader, managing teams of 2-25 professionals.
+# Work Experience
+${workExperienceString}
+# Core Competencies
+${skillsString}
+# Tools & Platforms
+${toolsString}
+# Testimonials
+${testimonialsString}
+# Services Offered
+Prajjwol can take on roles such as:
+${servicesString}
+# Contact Information
+(Do not share contact details like phone or email unless explicitly asked for it).`;
+      };
+      
+      // --- REACT COMPONENTS ---
+      
+      const TestimonialCard = ({ testimonial }) => (
+        <div className="bg-white rounded-xl shadow-lg h-full flex flex-col p-6 md:p-8 border border-slate-200/80">
+          <QuoteIcon className="w-10 h-10 text-lime-300 mb-4 flex-shrink-0" />
+          <p className="text-slate-600 italic flex-grow mb-6">"{testimonial.text}"</p>
+          <div className="flex items-center mt-auto pt-4 border-t border-slate-200">
+            <img className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-lime-200" src={testimonial.imageUrl} alt={testimonial.name} />
+            <div>
+              <h4 className="font-bold text-slate-800">{testimonial.name}</h4>
+              <p className="text-sm text-slate-500">{testimonial.role}</p>
+            </div>
+          </div>
+        </div>
+      );
+
+      const Testimonials = () => {
+          const swiperRef = React.useRef(null);
+          React.useEffect(() => {
+              if (swiperRef.current && typeof Swiper !== 'undefined') {
+                   new Swiper(swiperRef.current, {
+                      loop: true,
+                      autoplay: { delay: 5000, disableOnInteraction: false },
+                      pagination: { el: '.swiper-pagination', clickable: true },
+                      navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                      spaceBetween: 30,
+                      slidesPerView: 1,
+                      breakpoints: {
+                          768: { slidesPerView: 2 },
+                          1024: { slidesPerView: 3 },
+                      },
+                  });
+              }
+          }, []);
+        return (
+          <div>
+            <div className="text-center mb-12">
+              <h3 className="text-2xl md:text-3xl font-bold text-slate-800">What People Say</h3>
+              <p className="mt-4 max-w-2xl mx-auto text-slate-600">I'm grateful to have collaborated with so many talented individuals. Here's what some of them have to say.</p>
+            </div>
+            <div ref={swiperRef} className="swiper relative pb-12">
+              <div className="swiper-wrapper py-4">
+                  {testimonialsData.map((testimonial, index) => (
+                    <div key={index} className="swiper-slide h-auto">
+                        <TestimonialCard testimonial={testimonial} />
+                    </div>
+                  ))}
+              </div>
+              <div className="swiper-pagination !bottom-0"></div>
+              <div className="swiper-button-next text-lime-600 hover:text-lime-500 transition-colors"></div>
+              <div className="swiper-button-prev text-lime-600 hover:text-lime-500 transition-colors"></div>
+            </div>
+          </div>
+        );
+      };
+
+      const ChatAssistant = ({ isOpen, onClose }) => {
+        const [chat, setChat] = React.useState(null);
+        const [messages, setMessages] = React.useState([]);
+        const [input, setInput] = React.useState('');
+        const [isLoading, setIsLoading] = React.useState(false);
+        const messagesEndRef = React.useRef(null);
+        const [isConfigured, setIsConfigured] = React.useState(false);
+
+        React.useEffect(() => {
+          if (API_KEY && API_KEY !== "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+            const ai = new GoogleGenAI({ apiKey: API_KEY });
+            const chatInstance = ai.chats.create({
+              model: 'gemini-2.5-flash',
+              config: { systemInstruction: getPortfolioContext() },
+            });
+            setChat(chatInstance);
+            setMessages([{ role: 'model', text: 'Hi! I\'m Praxis, your AI guide. Ask me anything about Prajjwol\'s experience or skills!' }]);
+            setIsConfigured(true);
+          } else {
+            setMessages([{ role: 'system', text: 'AI assistant is not configured. Please add an API key to the index.html file to enable this feature.' }]);
+            setIsConfigured(false);
+          }
+        }, []);
+
+        React.useEffect(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, [messages, isLoading]);
+
+        const sendMessage = async (messageText) => {
+          if (!chat || !messageText.trim()) return;
+          setIsLoading(true);
+          const userMessage = { role: 'user', text: messageText };
+          setMessages(prev => [...prev, userMessage]);
+          setInput('');
+          try {
+            const stream = await chat.sendMessageStream({ message: messageText });
+            let newModelMessage = { role: 'model', text: ''};
+            setMessages(prev => [...prev, newModelMessage]);
+            for await (const chunk of stream) {
+              newModelMessage.text += chunk.text;
+              setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = { ...newModelMessage };
+                  return newMessages;
+              });
+            }
+          } catch (error) {
+            console.error('Error sending message:', error);
+            setMessages(prev => [...prev, { role: 'system', text: 'Sorry, I encountered an error. Please try again.' }]);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        const handleSubmit = (e) => { e.preventDefault(); sendMessage(input); };
+        const handleSuggestionClick = (suggestion) => { setInput(suggestion); sendMessage(suggestion); }
+        const suggestions = ["What services does he offer?", "Tell me about his 16X growth achievement.", "What's his tech stack?"];
+        
+        if (!isOpen) return null;
+        return (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="relative flex flex-col w-full max-w-lg h-[80vh] max-h-[700px] bg-white rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()} style={{ animation: 'chat-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+              <header className="flex items-center justify-between p-4 border-b border-emerald-200 bg-emerald-100/80">
+                <div className="flex items-center gap-3"><SparklesIcon className="w-6 h-6 text-emerald-700" /><h2 className="font-bold text-lg text-emerald-800">Chat with Praxis AI</h2></div>
+                <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:bg-slate-200"><XIcon className="w-5 h-5" /></button>
+              </header>
+              <main className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white"><SparklesIcon className="w-5 h-5" /></div>}
+                    <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${ msg.role === 'user' ? 'bg-emerald-600 text-white rounded-br-none' : msg.role === 'model' ? 'bg-emerald-100 text-slate-700 rounded-bl-none' : 'bg-red-100 text-red-700 text-sm' }`}>
+                      <p style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-end gap-2 justify-start">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white"><SparklesIcon className="w-5 h-5" /></div>
+                    <div className="bg-emerald-100 text-slate-700 rounded-2xl rounded-bl-none px-4 py-2"><div className="flex items-center justify-center gap-1.5"><span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></span><span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></span><span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse"></span></div></div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </main>
+              {isConfigured && messages.length <= 1 && (
+                  <div className="px-4 pb-2 flex flex-wrap gap-2">
+                      {suggestions.map(s => <button key={s} onClick={() => handleSuggestionClick(s)} className="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-full hover:bg-emerald-200 transition-colors">{s}</button>)}
+                  </div>
+              )}
+              <footer className="p-4 border-t border-emerald-200">
+                <form onSubmit={handleSubmit} className="flex items-center gap-2">
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question..." className="flex-1 bg-slate-100 border border-slate-200 rounded-full py-2 px-4 focus:ring-2 focus:ring-emerald-400 focus:outline-none transition" disabled={isLoading || !isConfigured} />
+                  <button type="submit" disabled={isLoading || !isConfigured || !input.trim()} className="w-10 h-10 flex items-center justify-center bg-emerald-600 text-white rounded-full disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-emerald-500 transition-all duration-200 transform enabled:hover:scale-110"><PaperAirplaneIcon className="w-5 h-5" /></button>
+                </form>
+              </footer>
+            </div>
+          </div>
+        );
+      };
+      
+      const HatCard = ({ hat }) => (
+          <div className="relative group p-6 rounded-lg bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+              <div className="flex flex-col items-center text-center"><span className="text-4xl mb-3">{hat.icon}</span><h3 className="font-bold text-lg text-slate-800">{hat.title}</h3></div>
+              <div className="absolute inset-0 bg-white/95 p-4 flex items-center justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><p className="text-sm text-slate-600">{hat.description}</p></div>
+          </div>
+      );
+      const HighlightCard = ({ highlight }) => (
+          <div className="text-center p-4"><p className="text-4xl font-extrabold text-emerald-600 mb-1">{highlight.value}</p><p className="text-sm text-slate-500 font-medium">{highlight.label}</p></div>
+      );
+      const Intro = () => (
+        <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16 text-center md:text-left">
+            <img src="https://i.pravatar.cc/150?u=prajjwol" alt={introData.name} className="w-40 h-40 md:w-48 md:h-48 rounded-full border-4 border-emerald-400/50 object-cover shadow-lg shadow-emerald-500/10" />
+            <div className="max-w-2xl"><h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">{introData.greeting}</h1><h2 className="text-xl md:text-2xl font-semibold text-emerald-600">{introData.subtitle}</h2></div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-4 max-w-3xl mx-auto text-sm">
+            {introData.personalInfo.map(info => (<div key={info.label} className="flex flex-col items-center text-center md:items-start md:text-left"><span className="font-semibold text-slate-700">{info.label}</span><span className="text-slate-500">{info.value}</span></div>))}
+          </div>
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200/80"><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{highlights.map(h => <HighlightCard key={h.label} highlight={h} />)}</div></div>
+          <Testimonials />
+          <div className="text-center"><h3 className="text-2xl md:text-3xl font-bold mb-8 text-slate-800">I've had the privilege of wearing many hats...</h3><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{introData.hats.map(hat => <HatCard key={hat.title} hat={hat} />)}</div></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+            <div><h3 className="text-2xl font-bold mb-6 text-slate-800">Some Things I’m Proud Of</h3><ul className="space-y-4">{introData.proudOf.map((item, index) => (<li key={index} className="flex items-start gap-4"><span className="text-lg mt-1">{item.icon}</span><p className="text-slate-600">{item.text}</p></li>))}</ul></div>
+            <div><h3 className="text-2xl font-bold mb-6 text-slate-800">And Just for Fun...</h3><ul className="space-y-4">{introData.funFacts.map((item, index) => (<li key={index} className="flex items-start gap-4"><span className="text-lg mt-1">{item.icon}</span><p className="text-slate-600">{item.text}</p></li>))}</ul></div>
+          </div>
+        </div>
+      );
+      
+      const TimelineItem = ({ item, isLeft }) => (
+          <div className={`flex ${isLeft ? 'flex-row-reverse md:flex-row-reverse' : 'flex-row md:flex-row'} items-start w-full mb-8`}>
+              <div className="w-full md:w-1/2 md:px-4">
+                  <div className={`p-4 rounded-lg shadow-lg bg-white ${isLeft ? 'md:text-right' : 'md:text-left'}`}><p className="text-sm text-teal-600 font-semibold">{item.date}</p><h3 className="text-xl font-bold text-slate-800">{item.title}</h3><h4 className="text-md font-medium text-slate-600 mb-2">{item.subtitle}</h4><p className="text-sm text-slate-500">{item.description}</p></div>
+              </div>
+              <div className="hidden md:flex w-10 flex-shrink-0 justify-center"><div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center z-10 shadow-md text-white">{item.icon}</div></div>
+              <div className="hidden md:block w-1/2 px-4"></div>
+          </div>
+      );
+      const CompetenciesSection = ({ skills }) => (
+          <div>
+              <h3 className="text-2xl font-bold text-center mb-10 text-slate-800">Core Competencies</h3>
+              <div className="flex flex-wrap justify-center gap-x-0 gap-y-2">
+                  {skills.map((skill, index) => (
+                      <div key={index} className="skill-hexagon shadow-md border border-gray-200">
+                          <div className="absolute inset-0 flex items-center justify-center text-center p-2">
+                              <span className="font-bold text-sm text-teal-800">{skill}</span>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      );
+      const ToolsSection = ({ categories }) => (
+          <div className="mt-12"><h3 className="text-2xl font-bold text-center mb-8 text-slate-800">Tools & Platforms</h3><div className="grid grid-cols-1 sm:grid-cols-2 gap-6">{categories.map((category) => (<div key={category.title} className="bg-white p-6 rounded-lg shadow-lg"><h4 className="text-lg font-bold mb-3 text-teal-600">{category.title}</h4><ul className="space-y-2">{category.skills.map((skill, i) => (<li key={i} className="text-sm text-slate-600">{skill}</li>))}</ul></div>))}</div></div>
+      );
+      const Resume = () => (
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-teal-600">My Journey & Skills</h2>
+              <a href="https://prajjwolbhattarai.com.np/resume.pdf" target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center gap-2 bg-teal-600 text-white font-bold py-2 px-6 rounded-full hover:bg-teal-500 transition-colors duration-300 shadow-lg hover:shadow-teal-500/50">
+                <DownloadIcon className="w-5 h-5" />
+                Download My Resume
+              </a>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
+                <div className="lg:col-span-3">
+                    <h3 className="text-2xl font-bold text-center mb-8 text-slate-800">Work Experience</h3><div className="relative"><div className="border-r-2 border-gray-200 absolute h-full top-0 left-4 md:left-1/2 md:-translate-x-1/2"></div>{workExperience.map((item, index) => (<TimelineItem key={index} item={item} isLeft={index % 2 !== 0} />))}</div>
+                    <h3 className="text-2xl font-bold text-center mt-12 mb-8 text-slate-800">Education</h3><div className="relative"><div className="border-r-2 border-gray-200 absolute h-full top-0 left-4 md:left-1/2 md:-translate-x-1/2"></div>{education.map((item, index) => (<TimelineItem key={index} item={item} isLeft={false} />))}</div>
+                </div>
+                <div className="lg:col-span-2"><CompetenciesSection skills={coreCompetencies} /><ToolsSection categories={toolsAndPlatforms} /></div>
+            </div>
+        </div>
+      );
+
+      const projectsData = [
+        { id: 1, title: 'Marketing, ROI & Forecasting Hub', description: 'An analytics hub using Gemini AI for insights from marketing data. Features interactive dashboards, forecasting, and ROI optimization tools.', imageUrl: 'https://picsum.photos/seed/marketinghub/400/300', link: 'https://prajjwolbhattarai.com.np/performance' },
+        { id: 2, title: 'Offline-First UTM Builder', description: 'A powerful, offline-first UTM builder and validator. Create single or bulk links, export to CSV, and integrate with Google Sheets with optional AI suggestions.', imageUrl: 'https://picsum.photos/seed/utmbuilder/400/300', link: 'https://prajjwolbhattarai.com.np/utm/' },
+        { id: 3, title: 'Snake Resume Game', description: 'A classic take on the snake game where every point earned reveals a new skill or experience about Prajjwol. A fun way to learn more.', imageUrl: 'https://picsum.photos/seed/snakegame/400/300', link: 'https://prajjwolbhattarai.com.np/growsnake' },
+      ];
+      const ProjectCard = ({ project }) => (
+        <div className="bg-white rounded-lg overflow-hidden shadow-lg transform hover:-translate-y-2 transition-all duration-300 ease-in-out group"><img src={project.imageUrl} alt={project.title} className="w-full h-48 object-cover" /><div className="p-6"><h3 className="text-xl font-bold mb-2 text-slate-800">{project.title}</h3><p className="text-slate-600 mb-4">{project.description}</p><a href={project.link} target="_blank" rel="noopener noreferrer" className="inline-block bg-cyan-600 text-white font-bold py-2 px-4 rounded-full group-hover:bg-cyan-500 transition-colors duration-300">View Project</a></div></div>
+      );
+      const Projects = () => (
+        <div className="p-8"><h2 className="text-3xl font-bold text-center mb-12 text-cyan-600">Developed Projects</h2><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">{projectsData.map((project) => (<ProjectCard key={project.id} project={project} />))}</div></div>
+      );
+
+      const Contact = () => {
+        const [formData, setFormData] = React.useState({ name: '', email: '', purpose: 'General Inquiry', message: '' });
+        const [formState, setFormState] = React.useState('idle'); // idle, submitting, success, error
+
+        const handleChange = (e) => {
+          const { id, value } = e.target;
+          setFormData(prev => ({ ...prev, [id]: value }));
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (formState === 'submitting') return;
+          
+          if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            console.error("Google Apps Script URL is not configured.");
+            setFormState('error');
+            return;
+          }
+
+          setFormState('submitting');
+          const data = new FormData();
+          Object.keys(formData).forEach(key => data.append(key, formData[key]));
+          
+          fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: data })
+            .then(response => response.json())
+            .then(data => {
+              if (data.result === 'success') {
+                setFormState('success');
+                setFormData({ name: '', email: '', purpose: 'General Inquiry', message: '' });
+              } else {
+                throw new Error(data.error || 'Unknown error');
+              }
+            })
+            .catch((error) => {
+              console.error('Error submitting form:', error);
+              setFormState('error');
+            });
+        };
+
+        const FormContent = () => {
+          switch (formState) {
+            case 'success':
+              return (
+                <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+                  <h2 className="text-2xl font-bold text-slate-800 mb-4">Thank You!</h2>
+                  <p className="text-slate-600">Prajjwol Bhattarai will contact you soon!</p>
+                  <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
+                    Send Another Message
+                  </button>
+                </div>
+              );
+            case 'error':
+              return (
+                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+                  <h2 className="text-2xl font-bold text-red-600 mb-4">Oops!</h2>
+                  <p className="text-slate-600">Something went wrong. Please try again or check the script configuration.</p>
+                  <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
+                    Try Again
+                  </button>
+                </div>
+              );
+            default: // 'idle' or 'submitting'
+              return (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div><label htmlFor="name" className="block text-sm font-medium text-slate-600 mb-2">Name</label><input type="text" id="name" value={formData.name} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
+                  <div><label htmlFor="email" className="block text-sm font-medium text-slate-600 mb-2">Email</label><input type="email" id="email" value={formData.email} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
+                  <div>
+                    <label htmlFor="purpose" className="block text-sm font-medium text-slate-600 mb-2">Purpose</label>
+                    <select id="purpose" value={formData.purpose} onChange={handleChange} className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
+                      <option>General Inquiry</option>
+                      <option>Job Opportunity</option>
+                      <option>Project Collaboration</option>
+                      <option>Mentorship Request</option>
+                    </select>
+                  </div>
+                  <div><label htmlFor="message" className="block text-sm font-medium text-slate-600 mb-2">Message</label><textarea id="message" rows={4} value={formData.message} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"></textarea></div>
+                  <div className="text-center">
+                    <button type="submit" disabled={formState === 'submitting'} className="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-500 transition-colors duration-300 shadow-lg hover:shadow-green-500/50 disabled:bg-slate-400 disabled:cursor-wait">
+                      {formState === 'submitting' ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </div>
+                </form>
+              );
+          }
+        };
+
+        return (
+          <div className="p-8 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-4 text-slate-800">Get In Touch</h2><p className="text-center text-slate-600 mb-12">I'm always open to discussing new projects or opportunities to be part of an ambitious vision.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-6">{contactInfo.map(item => (<div key={item.label} className="flex items-center gap-4"><div className="flex-shrink-0 w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">{item.icon}</div><div><h3 className="font-bold text-slate-700">{item.label}</h3><a href={item.href} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-900 transition-colors">{item.value}</a></div></div>))}</div>
+              <div className="p-8 bg-white rounded-lg shadow-lg">
+                <FormContent />
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- SECTION MAPPING (defined after components) ---
+      const SECTIONS = [
+        { id: 'intro', title: 'Introduction', accentTextColor: 'text-emerald-700', component: Intro },
+        { id: 'resume', title: 'Resume', accentTextColor: 'text-teal-700', component: Resume },
+        { id: 'projects', title: 'Projects', accentTextColor: 'text-cyan-700', component: Projects },
+        { id: 'contact', title: 'Contact', accentTextColor: 'text-green-700', component: Contact },
+      ];
+
+      // --- MAIN APP COMPONENT ---
+      const App = () => {
+        const [activeSectionId, setActiveSectionId] = React.useState('intro');
+        const [isChatOpen, setIsChatOpen] = React.useState(false);
+        const ActiveComponent = SECTIONS.find(s => s.id === activeSectionId)?.component;
+        return (
+          <div className="min-h-screen bg-emerald-50 font-sans antialiased">
+            <header className="p-4 flex justify-between items-center bg-emerald-100/80 border-b border-emerald-200 sticky top-0 z-30 backdrop-blur-sm">
+              <div className="flex items-center gap-4 md:gap-6">
+                {SECTIONS.map((section) => (
+                  <button key={section.id} onClick={() => setActiveSectionId(section.id)} className={`font-semibold text-sm md:text-base transition-colors duration-300 ${activeSectionId === section.id ? section.accentTextColor : 'text-slate-500 hover:text-slate-800'}`}>
+                    {section.title}
+                  </button>
+                ))}
+              </div>
+            </header>
+            <main className="p-4 md:p-8">
+              <div key={activeSectionId} className="animate-content-enter">
+                {ActiveComponent && <ActiveComponent />}
+              </div>
+            </main>
+            <button onClick={() => setIsChatOpen(true)} className="fixed bottom-6 right-6 w-16 h-16 bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 transform hover:scale-110 hover:shadow-xl transition-all duration-300 ease-in-out" aria-label="Open AI Assistant">
+              <SparklesIcon className="w-8 h-8" />
+            </button>
+            <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+          </div>
+        );
+      };
+      
+      // --- RENDER APP ---
+      const rootElement = document.getElementById('root');
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App />);
+
+    </script>
+  </body>
+</html>
