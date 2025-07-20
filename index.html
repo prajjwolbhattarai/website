@@ -226,12 +226,12 @@
           'SEO Specialist/Manager', 'Email Marketing Manager', 'E-commerce Marketing Manager', 'Digital Marketing Consultant',
       ];
       const testimonialsData = [
-        { name: 'Edrees Elrachidi', role: 'CFO & Founder', text: 'Prajjwol\'s expertise in digital marketing has been instrumental in our success. His strategic approach and dedication have propelled our brand to new heights.', imageUrl: 'https://i.pravatar.cc/150?u=edress' },
-        { name: 'Upakar Pandey', role: 'Partnerships Specialist', text: 'Prajjwol\'s meticulous attention to detail and strategic approach to marketing analytics have been instrumental in optimizing our campaigns. His recommendations consistently drive results and exceed expectations.', imageUrl: 'https://i.pravatar.cc/150?u=upakar' },
-        { name: 'Yogesh Upreti', role: 'Fullstack Developer', text: 'Prajjwol\'s content marketing skills are unparalleled. He has a unique ability to craft compelling narratives that resonate with our audience, driving engagement and loyalty to our brand.', imageUrl: 'https://i.pravatar.cc/150?u=yogesh' },
-        { name: 'Avinash Mishra', role: 'Portfolio Manager', text: 'Prajjwol\'s leadership and organization as a project manager have been essential to the success of our digital initiatives. His ability to navigate complex projects with ease ensures smooth sailing from start to finish.', imageUrl: 'https://i.pravatar.cc/150?u=avinash' },
-        { name: 'Parikshya Bhattarai', role: 'CEO', text: 'Prajjwol\'s expertise in digital advertising has transformed our approach and maximized our ROI. His targeted campaigns have significantly expanded our reach and generated impressive results.', imageUrl: 'https://i.pravatar.cc/150?u=parikshya' },
-        { name: 'Astha Koirala', role: 'Doctor', text: 'Prajjwol\'s insights in SEO have been invaluable. His deep understanding of search algorithms consistently delivers top-notch results, elevating our brand\'s visibility.', imageUrl: 'https://i.pravatar.cc/150?u=ashta' },
+        { name: 'Edrees Elrachidi', role: 'CFO & Founder', text: 'Prajjwol\'s expertise in digital marketing has been instrumental in our success. His strategic approach and dedication have propelled our brand to new heights.', imageUrl: 'assets/img/testimonials/edress.png' },
+        { name: 'Upakar Pandey', role: 'Partnerships Specialist', text: 'Prajjwol\'s meticulous attention to detail and strategic approach to marketing analytics have been instrumental in optimizing our campaigns. His recommendations consistently drive results and exceed expectations.', imageUrl: 'assets/img/testimonials/upakar.jpeg' },
+        { name: 'Yogesh Upreti', role: 'Fullstack Developer', text: 'Prajjwol\'s content marketing skills are unparalleled. He has a unique ability to craft compelling narratives that resonate with our audience, driving engagement and loyalty to our brand.', imageUrl: 'assets/img/testimonials/yogesh.jpeg' },
+        { name: 'Avinash Mishra', role: 'Portfolio Manager', text: 'Prajjwol\'s leadership and organization as a project manager have been essential to the success of our digital initiatives. His ability to navigate complex projects with ease ensures smooth sailing from start to finish.', imageUrl: 'assets/img/testimonials/avinash.jpg' },
+        { name: 'Parikshya Bhattarai', role: 'CEO', text: 'Prajjwol\'s expertise in digital advertising has transformed our approach and maximized our ROI. His targeted campaigns have significantly expanded our reach and generated impressive results.', imageUrl: 'assets/img/testimonials/parikshya.jpeg' },
+        { name: 'Astha Koirala', role: 'Doctor', text: 'Prajjwol\'s insights in SEO have been invaluable. His deep understanding of search algorithms consistently delivers top-notch results, elevating our brand\'s visibility.', imageUrl: 'assets/img/testimonials/astha.jpg' },
       ];
       const getPortfolioContext = () => {
           const workExperienceString = workExperience.map(w => `- ${w.title} at ${w.subtitle} (${w.date}): ${Array.isArray(w.description) ? w.description.join(', ') : w.description}`).join('\\n');
@@ -501,7 +501,8 @@ ${servicesString}
         <div className="p-8"><h2 className="text-3xl font-bold text-center mb-12 text-cyan-600">Developed Projects</h2><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">{projectsData.map((project) => (<ProjectCard key={project.id} project={project} />))}</div></div>
       );
 
-      const Contact = () => {
+      // This stateful component manages the contact form logic internally to prevent focus loss issues.
+      const ContactForm = () => {
         const [formData, setFormData] = React.useState({ name: '', email: '', purpose: 'General Inquiry', message: '' });
         const [formState, setFormState] = React.useState('idle'); // idle, submitting, success, error
 
@@ -514,7 +515,7 @@ ${servicesString}
           e.preventDefault();
           if (formState === 'submitting') return;
           
-          if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwdL5c5A0qRq58W0bZiA3OQkElhTpbWQMeodvjXwN7pUrYrv5cVoSvoAFU-biVYW4xB/exec') {
+          if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
             console.error("Google Apps Script URL is not configured.");
             setFormState('error');
             return;
@@ -540,60 +541,60 @@ ${servicesString}
             });
         };
 
-        const FormContent = () => {
-          switch (formState) {
-            case 'success':
-              return (
-                <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-                  <h2 className="text-2xl font-bold text-slate-800 mb-4">Thank You!</h2>
-                  <p className="text-slate-600">Prajjwol Bhattarai will contact you soon!</p>
-                  <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
-                    Send Another Message
+        switch (formState) {
+          case 'success':
+            return (
+              <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+                <h2 className="text-2xl font-bold text-slate-800 mb-4">Thank You!</h2>
+                <p className="text-slate-600">Prajjwol Bhattarai will contact you soon!</p>
+                <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
+                  Send Another Message
+                </button>
+              </div>
+            );
+          case 'error':
+            return (
+               <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+                <h2 className="text-2xl font-bold text-red-600 mb-4">Oops!</h2>
+                <p className="text-slate-600">Something went wrong. Please try again or check the script configuration.</p>
+                <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
+                  Try Again
+                </button>
+              </div>
+            );
+          default: // 'idle' or 'submitting'
+            return (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div><label htmlFor="name" className="block text-sm font-medium text-slate-600 mb-2">Name</label><input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
+                <div><label htmlFor="email" className="block text-sm font-medium text-slate-600 mb-2">Email</label><input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
+                <div>
+                  <label htmlFor="purpose" className="block text-sm font-medium text-slate-600 mb-2">Purpose</label>
+                  <select id="purpose" name="purpose" value={formData.purpose} onChange={handleChange} className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
+                    <option>General Inquiry</option>
+                    <option>Job Opportunity</option>
+                    <option>Project Collaboration</option>
+                    <option>Mentorship Request</option>
+                  </select>
+                </div>
+                <div><label htmlFor="message" className="block text-sm font-medium text-slate-600 mb-2">Message</label><textarea id="message" name="message" rows={4} value={formData.message} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"></textarea></div>
+                <div className="text-center">
+                  <button type="submit" disabled={formState === 'submitting'} className="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-500 transition-colors duration-300 shadow-lg hover:shadow-green-500/50 disabled:bg-slate-400 disabled:cursor-wait">
+                    {formState === 'submitting' ? 'Sending...' : 'Send Message'}
                   </button>
                 </div>
-              );
-            case 'error':
-              return (
-                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-                  <h2 className="text-2xl font-bold text-red-600 mb-4">Oops!</h2>
-                  <p className="text-slate-600">Something went wrong. Please try again or check the script configuration.</p>
-                  <button onClick={() => setFormState('idle')} className="mt-8 bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-500 transition-colors duration-300">
-                    Try Again
-                  </button>
-                </div>
-              );
-            default: // 'idle' or 'submitting'
-              return (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div><label htmlFor="name" className="block text-sm font-medium text-slate-600 mb-2">Name</label><input type="text" id="name" value={formData.name} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
-                  <div><label htmlFor="email" className="block text-sm font-medium text-slate-600 mb-2">Email</label><input type="email" id="email" value={formData.email} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" /></div>
-                  <div>
-                    <label htmlFor="purpose" className="block text-sm font-medium text-slate-600 mb-2">Purpose</label>
-                    <select id="purpose" value={formData.purpose} onChange={handleChange} className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-                      <option>General Inquiry</option>
-                      <option>Job Opportunity</option>
-                      <option>Project Collaboration</option>
-                      <option>Mentorship Request</option>
-                    </select>
-                  </div>
-                  <div><label htmlFor="message" className="block text-sm font-medium text-slate-600 mb-2">Message</label><textarea id="message" rows={4} value={formData.message} onChange={handleChange} required className="w-full bg-green-50 border border-green-300 text-slate-800 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"></textarea></div>
-                  <div className="text-center">
-                    <button type="submit" disabled={formState === 'submitting'} className="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-500 transition-colors duration-300 shadow-lg hover:shadow-green-500/50 disabled:bg-slate-400 disabled:cursor-wait">
-                      {formState === 'submitting' ? 'Sending...' : 'Send Message'}
-                    </button>
-                  </div>
-                </form>
-              );
-          }
-        };
+              </form>
+            );
+        }
+      };
 
+      const Contact = () => {
         return (
           <div className="p-8 max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-4 text-slate-800">Get In Touch</h2><p className="text-center text-slate-600 mb-12">I'm always open to discussing new projects or opportunities to be part of an ambitious vision.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <div className="space-y-6">{contactInfo.map(item => (<div key={item.label} className="flex items-center gap-4"><div className="flex-shrink-0 w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">{item.icon}</div><div><h3 className="font-bold text-slate-700">{item.label}</h3><a href={item.href} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-900 transition-colors">{item.value}</a></div></div>))}</div>
               <div className="p-8 bg-white rounded-lg shadow-lg">
-                <FormContent />
+                <ContactForm />
               </div>
             </div>
           </div>
