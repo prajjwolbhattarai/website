@@ -700,13 +700,46 @@ ${servicesString}
       const App = () => {
         const [activeSectionId, setActiveSectionId] = React.useState('intro');
         const [isChatOpen, setIsChatOpen] = React.useState(false);
+
+        // This effect syncs the component state with the URL hash.
+        // It runs once on mount to set up listeners and handle the initial URL.
+        React.useEffect(() => {
+          const handleHashChange = () => {
+            const hash = window.location.hash.substring(1);
+            // Check if the hash corresponds to a valid section, otherwise default to 'intro'
+            if (hash && SECTIONS.some(s => s.id === hash)) {
+              setActiveSectionId(hash);
+            } else {
+              setActiveSectionId('intro');
+            }
+          };
+
+          // Add event listener for hash changes (e.g., browser back/forward buttons)
+          window.addEventListener('hashchange', handleHashChange);
+          
+          // Call the handler once on initial load
+          handleHashChange();
+
+          // Cleanup the event listener when the component unmounts
+          return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+          };
+        }, []); // Empty dependency array ensures this effect runs only once
+
+        // This function is called when a navigation button is clicked.
+        // It updates the URL hash, which in turn triggers the `hashchange` event listener.
+        const handleSectionChange = (sectionId) => {
+          window.location.hash = sectionId;
+        };
+        
         const ActiveComponent = SECTIONS.find(s => s.id === activeSectionId)?.component;
+        
         return (
           <div className="min-h-screen bg-emerald-50 font-sans antialiased">
             <header className="p-4 flex justify-between items-center bg-emerald-100/80 border-b border-emerald-200 sticky top-0 z-30 backdrop-blur-sm">
               <div className="flex items-center gap-4 md:gap-6">
                 {SECTIONS.map((section) => (
-                  <button key={section.id} onClick={() => setActiveSectionId(section.id)} className={`font-semibold text-sm md:text-base transition-colors duration-300 ${activeSectionId === section.id ? section.accentTextColor : 'text-slate-500 hover:text-slate-800'}`}>
+                  <button key={section.id} onClick={() => handleSectionChange(section.id)} className={`font-semibold text-sm md:text-base transition-colors duration-300 ${activeSectionId === section.id ? section.accentTextColor : 'text-slate-500 hover:text-slate-800'}`}>
                     {section.title}
                   </button>
                 ))}
