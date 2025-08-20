@@ -507,20 +507,105 @@ ${servicesString}
         <div className="p-8"><h2 className="text-3xl font-bold text-center mb-12 text-cyan-600">Developed Projects</h2><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">{projectsData.map((project) => (<ProjectCard key={project.id} project={project} />))}</div></div>
       );
 
-      const caseStudiesData = [
-        { id: 1, title: 'E-commerce SEO Overhaul', description: 'Increased organic traffic by 120% for a major online retailer through technical SEO and content strategy.', imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=E-commerce+SEO', link: '#', keywords: 'seo, e-commerce, content strategy, retail' },
-        { id: 2, title: 'B2B Lead Generation Campaign', description: 'Generated over 500 qualified leads in one quarter using a targeted LinkedIn Ads and content marketing funnel.', imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=B2B+Leads', link: '#', keywords: 'b2b, lead generation, social media, linkedin' },
-        { id: 3, title: 'SaaS Activation Rate CRO', description: 'Improved user activation rate by 35% by redesigning the onboarding flow and implementing in-app messaging.', imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=SaaS+CRO', link: '#', keywords: 'saas, cro, user experience, product marketing' },
-        { id: 4, title: 'Performance Marketing ROI Boost', description: 'Managed a €100k/month budget for Google & Meta Ads, achieving a 25% increase in ROI by optimizing campaigns.', imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=PPC+ROI', link: '#', keywords: 'ppc, performance marketing, google ads, meta ads' },
-        { id: 5, title: 'Marketing Automation System', description: 'Built an end-to-end marketing automation system that nurtured leads and reduced the sales cycle by 15%.', imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=Automation', link: '#', keywords: 'automation, email marketing, crm, workflows' },
-        { id: 6, title: 'Brand Awareness Video Campaign', description: 'Directed a viral video campaign that garnered 2M+ views and significantly boosted brand recall.', imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=Video+Campaign', link: '#', keywords: 'brand awareness, creative direction, video, social media' },
-        { id: 7, title: 'GTM Strategy for a New App', description: 'Developed and executed a successful Go-To-Market strategy for a new mobile app, reaching 50k downloads in 3 months.', imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=GTM+Strategy', link: '#', keywords: 'gtm, product launch, mobile, strategy' },
-        { id: 8, title: 'Content Hub for Organic Growth', description: 'Created a content hub that became a primary source of organic traffic, attracting 50k+ monthly visitors.', imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=Content+Hub', link: '#', keywords: 'content marketing, seo, organic growth' },
-        { id: 9, title: 'Social Media Community Building', description: 'Grew an online community from 1k to 100k members through engaging content and strategic partnerships.', imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=Community', link: '#', keywords: 'social media, community management, engagement' },
-        { id: 10, title: 'A/B Testing Program Implementation', description: 'Established a company-wide A/B testing program that led to a 20% uplift in key conversion metrics.', imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=A/B+Testing', link: '#', keywords: 'a/b testing, cro, data analysis' },
-        { id: 11, title: 'CRM & Sales Funnel Optimization', description: 'Re-structured the CRM and sales funnel, resulting in better lead tracking and a 10% increase in closed deals.', imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=CRM+Funnel', link: '#', keywords: 'crm, sales, b2b, funnel' },
-        { id: 12, title: 'International Market Expansion', description: 'Led the marketing efforts for a successful expansion into three new international markets.', imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=Expansion', link: '#', keywords: 'strategy, international, gtm, research' },
-      ];
+     const caseStudiesData = [
+  { 
+    id: 1, 
+    title: 'UG Cakes – E-commerce Growth (16X Sales Scale)', 
+    description: 'Scaled daily online sales 16X by building full-funnel paid performance marketing campaigns across Google and Meta, optimizing CAC and achieving consistent 3–4X ROAS.', 
+    imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=UG+Cakes', 
+    link: '#', 
+    keywords: 'e-commerce, performance marketing, google ads, meta ads, facebook ads, instagram ads, funnel optimization, roas, cac reduction, paid social, paid search, digital strategy, growth marketing, product bundling, conversion optimization' 
+  },
+  { 
+    id: 2, 
+    title: 'Pocket Studio – SaaS Restaurant Management Platform', 
+    description: 'Built and scaled performance marketing funnels for a B2B SaaS restaurant management platform, improving lead generation, attribution tracking, and reducing acquisition costs.', 
+    imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=Pocket+Studio', 
+    link: '#', 
+    keywords: 'b2b saas, restaurant software, performance marketing, google ads, linkedin ads, funnel building, attribution tracking, automation, lead generation, paid acquisition, campaign optimization, data-driven marketing, cpl reduction, crm integration, growth strategy' 
+  },
+  { 
+    id: 3, 
+    title: 'Pocket Studio – SaaS Billing Software Transformation', 
+    description: 'Transformed cloud-based SaaS into decentralized SaaS billing system, delivering $6M+ client savings and leading to acquisition while optimizing marketing and growth funnels.', 
+    imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=Billing+SaaS', 
+    link: '#', 
+    keywords: 'saas billing, decentralized saas, b2b software, automation, business transformation, performance marketing, saas growth, pricing optimization, revenue efficiency, crm, fintech saas, campaign tracking, paid media, demand generation, business scaling' 
+  },
+  { 
+    id: 4, 
+    title: '88 Collective – CBD E-commerce Growth in Restricted Market', 
+    description: 'Developed and executed performance marketing campaigns for CBD e-commerce under strict ad restrictions, leveraging SEO, influencer outreach, and community-driven growth.', 
+    imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=CBD+Growth', 
+    link: '#', 
+    keywords: 'cbd marketing, restricted ads, e-commerce growth, seo, influencer marketing, performance marketing, paid search alternatives, social media strategy, content marketing, niche growth, regulatory markets, funnel building, customer acquisition, brand awareness' 
+  },
+  { 
+    id: 5, 
+    title: 'NAO Co-Investment – Fintech Performance Marketing', 
+    description: 'Managed high-budget campaigns across Google, Meta, LinkedIn, and Reddit for fintech SaaS, optimizing investor acquisition funnels, lowering CPA, and driving qualified leads.', 
+    imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=Fintech+NAO', 
+    link: '#', 
+    keywords: 'fintech, private equity, investment marketing, performance marketing, google ads, linkedin ads, reddit ads, investor acquisition, b2b saas, crm automation, lead nurturing, growth strategy, cpa optimization, demand generation, data analytics' 
+  },
+  { 
+    id: 6, 
+    title: 'Hire With Us – Reverse Recruiting Platform Launch', 
+    description: 'Launched and scaled a reverse recruiting SaaS platform for EU market, driving demand generation with paid ads, content funnels, and product-led growth strategies.', 
+    imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=HireWithUs', 
+    link: '#', 
+    keywords: 'reverse recruiting, hr tech, saas platform, product launch, go-to-market, performance marketing, linkedin ads, content marketing, funnel optimization, b2b demand generation, lead gen, automation, candidate acquisition, campaign strategy, employer branding' 
+  },
+  { 
+    id: 7, 
+    title: 'Reverse Recruiting Automation – ATS Optimization', 
+    description: 'Built an automation system that scrapes jobs, ranks them, and generates ATS-optimized resumes and cover letters, reducing application time by 90% and improving callbacks 4X.', 
+    imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=Automation', 
+    link: '#', 
+    keywords: 'recruitment automation, ats optimization, resume automation, cover letter automation, job scraping, career tech, workflow automation, b2c saas, efficiency tools, performance marketing, ai automation, crm workflows, growth automation, candidate experience' 
+  },
+  { 
+    id: 8, 
+    title: 'Creative Automation Tool – Ad Production at Scale', 
+    description: 'Developed a creative automation SaaS tool integrating Canva API, GPT, and Google Sheets to generate thousands of unique ad creatives for scalable A/B testing.', 
+    imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=Ad+Automation', 
+    link: '#', 
+    keywords: 'creative automation, ad automation, canva api, ai marketing, performance marketing, campaign scaling, google sheets integration, gpt automation, creative testing, ad production, digital ads, workflow automation, martech, efficiency tools, growth hacking' 
+  },
+  { 
+    id: 9, 
+    title: 'Marketing Automation System – CRM & Lead Nurturing', 
+    description: 'Built an end-to-end marketing automation system connecting CRM, email marketing, and sales workflows, reducing sales cycle by 15% and improving conversion rates.', 
+    imageUrl: 'https://placehold.co/600x400/6366f1/ffffff?text=Marketing+Automation', 
+    link: '#', 
+    keywords: 'marketing automation, crm workflows, lead nurturing, email automation, sales funnel optimization, hubspot, customer journeys, performance marketing, conversion optimization, workflow automation, saas crm, demand gen, campaign management, lead scoring' 
+  },
+  { 
+    id: 10, 
+    title: 'Deep Tech Recruitment – Talent Marketing Campaigns', 
+    description: 'Created and executed targeted marketing funnels to engage senior deep tech talent, leveraging niche content marketing, automation, and personalized outreach.', 
+    imageUrl: 'https://placehold.co/600x400/818cf8/ffffff?text=Deep+Tech', 
+    link: '#', 
+    keywords: 'deep tech, talent marketing, recruitment campaigns, b2b funnels, automation, content marketing, niche hiring, demand generation, crm automation, linkedin ads, candidate engagement, lead nurturing, saas growth, hr tech, performance marketing' 
+  },
+  { 
+    id: 11, 
+    title: 'UG Cakes – Performance Marketing Product Management', 
+    description: 'Managed product-level campaign structures, bundling, and seasonal promotions tied to performance marketing KPIs, achieving stronger ROAS and consistent scaling.', 
+    imageUrl: 'https://placehold.co/600x400/a5b4fc/ffffff?text=UG+PM', 
+    link: '#', 
+    keywords: 'e-commerce marketing, product management, campaign optimization, performance marketing, meta ads, google ads, product bundling, event-driven marketing, digital growth, seasonal campaigns, roas improvement, data-driven marketing, funnel optimization' 
+  },
+  { 
+    id: 12, 
+    title: 'Independent Project – Pocket Studio Ad Campaigns', 
+    description: 'Designed and executed ad campaigns for Pocket Studio SaaS modules, optimizing CAC, boosting lead generation, and building attribution dashboards for performance tracking.', 
+    imageUrl: 'https://placehold.co/600x400/c7d2fe/ffffff?text=Pocket+PM', 
+    link: '#', 
+    keywords: 'b2b saas, restaurant management, ad campaigns, google ads, meta ads, linkedin ads, attribution dashboards, performance marketing, cpl reduction, lead generation, funnel design, paid acquisition, growth marketing, campaign optimization, crm integration' 
+  }
+];
+
       const CaseStudyCard = ({ study }) => (
         <div className="bg-white rounded-lg overflow-hidden shadow-lg transform hover:-translate-y-2 transition-all duration-300 ease-in-out group">
           <img src={study.imageUrl} alt={study.title} className="w-full h-48 object-cover" />
