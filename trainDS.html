@@ -2,483 +2,355 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Offline Training Hub</title>
+    <title>Resource Library</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Custom scrollbar for a better look in dark mode */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.1.1",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client"
       }
-      ::-webkit-scrollbar-track {
-        background: #1f2937; /* gray-800 */
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #4b5563; /* gray-600 */
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #6b7280; /* gray-500 */
-      }
-      /* Ensure video controls are visible in all browsers */
-      video::-webkit-media-controls-enclosure {
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-    </style>
+    }
+    </script>
   </head>
-  <body class="bg-gray-900 text-gray-100 font-sans">
-    <div class="flex flex-col h-screen antialiased">
-      <!-- Header -->
-      <header
-        class="flex-shrink-0 bg-gray-800/70 backdrop-blur-sm shadow-md border-b border-gray-700"
-      >
-        <div class="mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-16">
-            <div id="app-header-title" class="flex items-center gap-3">
-              <!-- Logo will be inserted by JS -->
-              <span
-                class="text-xl font-bold text-white tracking-wider"
-                data-t="appTitle"
-              >
-                Offline Training Hub
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                id="lang-en"
-                class="px-3 py-1 text-sm font-medium rounded-md transition-colors"
-                aria-pressed="true"
-              >
-                EN
-              </button>
-              <button
-                id="lang-de"
-                class="px-3 py-1 text-sm font-medium rounded-md transition-colors"
-                aria-pressed="false"
-              >
-                DE
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+    <script type="text/babel" data-type="module">
+      import React, { useState, useMemo } from 'react';
+      import ReactDOM from 'react-dom/client';
 
-      <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar -->
-        <aside
-          class="w-full max-w-xs flex-shrink-0 bg-gray-800 border-r border-gray-700 overflow-y-auto"
-        >
-          <div class="p-4">
-            <h2
-              class="text-sm font-semibold uppercase text-gray-400 tracking-wider"
-              data-t="trainingModules"
-            >
-              Training Modules
-            </h2>
-          </div>
-          <nav>
-            <ul id="sidebar-module-list">
-              <!-- Modules will be injected here by JS -->
-            </ul>
-          </nav>
-        </aside>
+      // --- Constants and Types ---
+      const FileType = {
+        VIDEO: 'VIDEO',
+        PDF: 'PDF',
+      };
 
-        <!-- Main Content -->
-        <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          <!-- Content will be injected here by JS -->
-        </main>
-      </div>
-    </div>
-
-    <script>
-      // --- DATA ---
-      const TRAINING_DATA = [
+      const fileData = [
         {
-          id: 'module-1',
-          title: {
-            en: 'Introduction to Project Management',
-            de: 'Einführung in das Projektmanagement',
-          },
-          description: {
-            en: 'Learn the fundamentals of project management, including project lifecycle, key terminologies, and the role of a project manager. This module is perfect for beginners.',
-            de: 'Lernen Sie die Grundlagen des Projektmanagements, einschließlich Projektlebenszyklus, Schlüsselterminologien und die Rolle eines Projektmanagers. Dieses Modul ist perfekt für Anfänger.',
-          },
-          videoUrl: './videos/sample-video-1.mp4',
-          pdfUrl: './pdfs/sample-doc-1.pdf',
-          thumbnailUrl: './thumbnails/module-1.jpg',
-          duration: '12:45',
+          title: 'Setting Skript Gatekeeper',
+          link: 'https://www.loom.com/share/f49656887717499fb6189ca174fda03e?sid=56a4a7cc-8be2-4fc7-9139-398bdf737f80',
+          type: FileType.VIDEO,
         },
         {
-          id: 'module-2',
-          title: {
-            en: 'Agile & Scrum Basics',
-            de: 'Grundlagen von Agile & Scrum',
-          },
-          description: {
-            en: 'An overview of Agile methodologies with a deep dive into the Scrum framework. Understand sprints, stand-ups, and retrospectives.',
-            de: 'Ein Überblick über agile Methoden mit einem tiefen Einblick in das Scrum-Framework. Verstehen Sie Sprints, Stand-ups und Retrospektiven.',
-          },
-          videoUrl: './videos/sample-video-2.mp4',
-          pdfUrl: './pdfs/sample-doc-2.pdf',
-          thumbnailUrl: './thumbnails/module-2.jpg',
-          duration: '22:10',
+          title: 'Setting Skript Entscheider',
+          link: 'https://www.loom.com/share/a2ac0ebd8aaf4ad482498ce409b20e6d?sid=da547620-1939-4cf1-986d-9d51d3a50688',
+          type: FileType.VIDEO,
         },
         {
-          id: 'module-3',
-          title: {
-            en: 'Risk Management Strategies',
-            de: 'Strategien für das Risikomanagement',
-          },
-          description: {
-            en: 'Identify, assess, and mitigate risks in your projects. This module covers qualitative and quantitative risk analysis techniques.',
-            de: 'Identifizieren, bewerten und mindern Sie Risiken in Ihren Projekten. Dieses Modul behandelt qualitative und quantitative Risikoanalysetechniken.',
-          },
-          videoUrl: './videos/sample-video-1.mp4',
-          pdfUrl: './pdfs/sample-doc-1.pdf',
-          thumbnailUrl: './thumbnails/module-3.jpg',
-          duration: '18:30',
+          title: 'Einwandbehandlung Setting',
+          link: 'https://www.loom.com/share/887299a46e8e4c81af6daecb3ab9626a?sid=112a183a-3e5a-41bf-86db-87283e5ff4b1',
+          type: FileType.VIDEO,
         },
         {
-          id: 'module-4',
-          title: {
-            en: 'Effective Communication for Teams',
-            de: 'Effektive Kommunikation für Teams',
-          },
-          description: {
-            en: 'Master the art of communication within a project team. Learn about stakeholder communication, reporting, and conflict resolution.',
-            de: 'Meistern Sie die Kunst der Kommunikation innerhalb eines Projektteams. Erfahren Sie mehr über Stakeholder-Kommunikation, Berichterstattung und Konfliktlösung.',
-          },
-          videoUrl: './videos/sample-video-2.mp4',
-          pdfUrl: './pdfs/sample-doc-2.pdf',
-          thumbnailUrl: './thumbnails/module-4.jpg',
-          duration: '15:55',
+          title: 'Closing Skript',
+          link: 'https://www.loom.com/share/364b781e179a473c8d1d5005193ee494?sid=d839bd56-47e9-4587-84b9-e03a59eee233',
+          type: FileType.VIDEO,
         },
         {
-          id: 'module-5',
-          title: {
-            en: 'Advanced Budgeting & Cost Control',
-            de: 'Fortgeschrittene Budgetierung & Kostenkontrolle',
-          },
-          description: {
-            en: 'A deep dive into project budgeting, cost estimation, and control techniques to keep your projects financially on track.',
-            de: 'Ein tiefer Einblick in Projektbudgetierung, Kostenschätzung und Kontrolltechniken, um Ihre Projekte finanziell auf Kurs zu halten.',
-          },
-          videoUrl: './videos/sample-video-1.mp4',
-          pdfUrl: './pdfs/sample-doc-1.pdf',
-          thumbnailUrl: './thumbnails/module-5.jpg',
-          duration: '25:00',
+          title: 'Closing Einwandbehandlung',
+          link: 'https://www.loom.com/share/1f55f059da8f4ea8af7ce9304969a98c?sid=302bab54-6aba-42f7-b3c9-80f62757f54e',
+          type: FileType.VIDEO,
         },
         {
-          id: 'module-6',
-          title: {
-            en: 'Using Project Management Software',
-            de: 'Verwendung von Projektmanagement-Software',
-          },
-          description: {
-            en: 'A practical guide on leveraging popular project management tools like Jira, Asana, and Trello to streamline your workflow.',
-            de: 'Eine praktische Anleitung zur Nutzung beliebter Projektmanagement-Tools wie Jira, Asana und Trello zur Optimierung Ihres Arbeitsablaufs.',
-          },
-          videoUrl: './videos/sample-video-2.mp4',
-          pdfUrl: './pdfs/sample-doc-2.pdf',
-          thumbnailUrl: './thumbnails/module-6.jpg',
-          duration: '20:15',
+          title: 'Kleiner Aufwand, viel mehr Umsatz',
+          link: 'https://www.loom.com/share/df9d48e0a89f4ddbb0872d632fa5bc09?sid=132808f3-ab64-4981-8e6a-b3824d9cc620',
+          type: FileType.VIDEO,
+        },
+        {
+          title: 'Gamechanger Techniken und Konzepte',
+          link: 'https://www.loom.com/share/c311c84fd1b5442ebcc8c3f94e7fce21?sid=4cd09289-ba5f-449e-9a6c-6a737d5d7e9b',
+          type: FileType.VIDEO,
+        },
+        {
+          title: 'Closing- Einwandbehandlung.pdf',
+          link: 'https://drive.google.com/file/d/1BjHCFxYFBUe8qi-gdh7Ug7ZEvOyjE8Xu/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Closing- Entscheider-Gesprächseinstieg.pdf',
+          link: 'https://drive.google.com/file/d/1s7Z1XdmioBlp0jFPq_SF-5h8j0ZM3WW7/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Closing- Pitch.pdf',
+          link: 'https://drive.google.com/file/d/1Nhe47dRk9XLWVPlh7cy4d1iCyt06a2pL/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Nonverbale Gamechanger.pdf',
+          link: 'https://drive.google.com/file/d/1Cs7bB7QLqbCAR7v0wRTezklb7R22sI2Y/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Referrals.pdf',
+          link: 'https://drive.google.com/file/d/1vaxF_nLt09ct4y8-QB46cFeU3aB0IVFI/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Setting- Entscheider-Einwandbehandlung.pdf',
+          link: 'https://drive.google.com/file/d/1a-0nMvsANGcRKqNmGYdkwS4aHdYDLkHM/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Setting- Entscheider-Gesprächseinstieg.pdf',
+          link: 'https://drive.google.com/file/d/1GsvFxr7Vpnfh_v-ZW3SJNjoIPI41tU85/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Setting- Gatekeeper-Einwandbehandlung.pdf',
+          link: 'https://drive.google.com/file/d/1qLAXqqxSI_GAhrRbylxBNAj7EoVeQKZe/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Setting- Gatekeeper-Gesprächseinstieg.pdf',
+          link: 'https://drive.google.com/file/d/190YBr_9EwaczaroBn1sL7UjWvbgs7Jlg/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Spiegelfragen 2.pdf',
+          link: 'https://drive.google.com/file/d/1Pn2QgEWUkfl4QvGbWQgX_1rIQZHkOZRU/view?usp=drive_link',
+          type: FileType.PDF,
+        },
+        {
+          title: 'Upsells Setting.pdf',
+          link: 'https://drive.google.com/file/d/1p9B8250gWtQZFGPLL200jkPTCxtSMMAS/view?usp=drive_link',
+          type: FileType.PDF,
         },
       ];
 
-      // --- STATE MANAGEMENT ---
-      let currentLanguage = 'en';
-      let selectedModule = TRAINING_DATA[0] || null;
+      // --- Icon Components ---
+      const PdfIcon = (props) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          {...props}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+          />
+        </svg>
+      );
 
-      // --- TRANSLATIONS ---
-      const translations = {
-        en: {
-          appTitle: 'Offline Training Hub',
-          trainingModules: 'Training Modules',
-          viewPdf: 'View Associated PDF',
-          localSetupTitle: 'Local File Setup',
-          localSetupInfo1: 'For this application to work, place your videos in a ',
-          localSetupInfo2: ' folder, PDFs in a ',
-          localSetupInfo3: ' folder, and thumbnails in ',
-          localSetupInfo4: '. Update ',
-          localSetupInfo5: ' to match your file names.',
-          noModulesTitle: 'No training modules found.',
-          noModulesText1: 'Please add training data to ',
-          noModulesText2: ' to get started.',
-        },
-        de: {
-          appTitle: 'Offline-Schulungszentrum',
-          trainingModules: 'Schulungsmodule',
-          viewPdf: 'Zugehöriges PDF anzeigen',
-          localSetupTitle: 'Lokale Dateieinrichtung',
-          localSetupInfo1:
-            'Damit diese Anwendung funktioniert, legen Sie Ihre Videos in einem ',
-          localSetupInfo2: '-Ordner, PDFs in einem ',
-          localSetupInfo3: '-Ordner und Miniaturansichten in einem ',
-          localSetupInfo4: '-Ordner ab. Aktualisieren Sie ',
-          localSetupInfo5: ' entsprechend Ihrer Dateinamen.',
-          noModulesTitle: 'Keine Schulungsmodule gefunden.',
-          noModulesText1: 'Bitte fügen Sie Trainingsdaten zu ',
-          noModulesText2: ' hinzu, um zu beginnen.',
-        },
+      const VideoIcon = (props) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          {...props}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
+        </svg>
+      );
+
+      const SearchIcon = (props) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          {...props}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+          />
+        </svg>
+      );
+      
+      // --- UI Components ---
+      const FileTypeBadge = ({ type }) => {
+        const isVideo = type === FileType.VIDEO;
+        const bgColor = isVideo ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
+        const Icon = isVideo ? VideoIcon : PdfIcon;
+
+        return (
+          <span
+            className={`inline-flex items-center gap-x-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${bgColor}`}
+          >
+            <Icon className="h-4 w-4" />
+            {type}
+          </span>
+        );
       };
 
-      const t = (key) => translations[currentLanguage]?.[key] || key;
+      const FileRow = ({ file }) => {
+        return (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 md:grid-cols-12 md:gap-x-6 md:p-0 md:items-center hover:bg-gray-50 transition-colors duration-150">
+            <div className="col-span-2 md:col-span-6 md:px-6 md:py-4 whitespace-normal text-sm font-medium text-gray-900">
+              {file.title}
+            </div>
+            <div className="col-span-1 md:col-span-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
+              <FileTypeBadge type={file.type} />
+            </div>
+            <div className="col-span-1 md:col-span-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium flex justify-end md:justify-start">
+              <a
+                href={file.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-x-2 text-emerald-600 hover:text-emerald-800 hover:underline transition-colors duration-150 font-semibold"
+              >
+                Open Resource
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        );
+      };
 
-      // --- SVG ICONS ---
-      const LogoIcon = `
-        <svg class="w-8 h-8 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h9a3 3 0 003-3v-1.5a.75.75 0 00-1.5 0V16.5a1.5 1.5 0 01-1.5 1.5h-9a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 014.5 6h1.5a.75.75 0 000-1.5H4.5z" />
-          <path d="M8.25 8.25a.75.75 0 000 1.5h3.75a.75.75 0 000-1.5H8.25zM8.25 12a.75.75 0 000 1.5h3.75a.75.75 0 000-1.5H8.25zM11.25 8.25a.75.75 0 00-1.5 0v3.75a.75.75 0 001.5 0V8.25z" />
-          <path d="M13.5 1.5a.75.75 0 00-.75.75V3a.75.75 0 001.5 0V2.25A.75.75 0 0013.5 1.5zM16.5 3a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM19.5 1.5a.75.75 0 00-.75.75V3a.75.75 0 001.5 0V2.25A.75.75 0 0019.5 1.5zM22.5 3a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM16.5 6a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM19.5 4.5a.75.75 0 00-.75.75v1.5a.75.75 0 001.5 0v-1.5a.75.75 0 00-.75-.75zM22.5 6a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM13.5 4.5a.75.75 0 00-.75.75v4.5a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75zM16.5 9a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75z" />
-        </svg>
-      `;
+      const FilterButton = ({ label, filterValue, activeFilter, onClick }) => {
+        const isActive = activeFilter === filterValue;
+        return (
+          <button
+            type="button"
+            onClick={() => onClick(filterValue)}
+            className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 ${
+              isActive
+                ? 'bg-emerald-700 text-white shadow'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {label}
+          </button>
+        );
+      };
 
-      const PlayIcon = `
-        <svg class="w-10 h-10 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm14.024-.983a1.125 1.125 0 010 1.966l-5.603 3.113A1.125 1.125 0 019 15.113V8.887c0-.857.921-1.4 1.671-.983l5.603 3.113z" clip-rule="evenodd" />
-        </svg>
-      `;
-
-      const InfoIcon = `
-        <svg class="w-6 h-6 text-teal-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-        </svg>
-      `;
-
-      const PdfIcon = `
-        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M15.53 3.47a.75.75 0 0 0-1.06 0L8.47 9.47a.75.75 0 0 0 0 1.06l1.25 1.25v4.44a.75.75 0 0 0 1.5 0v-3.38l1.03 1.03a.75.75 0 0 0 1.06-1.06L11.56 10l3.97-3.97a.75.75 0 0 0 0-1.06ZM4.5 3.75A.75.75 0 0 0 3 4.5v11A.75.75 0 0 0 4.5 16h5a.75.75 0 0 0 0-1.5h-5V5.56l2.72 2.72a.75.75 0 0 0 1.06-1.06L5.53 4.47a.75.75 0 0 0-1.06-.72Z" clip-rule="evenodd" />
-        </svg>
-      `;
-
-      // --- DOM ELEMENT SELECTORS ---
-      const sidebarModuleList = document.getElementById('sidebar-module-list');
-      const mainContent = document.getElementById('main-content');
-      const langBtnEn = document.getElementById('lang-en');
-      const langBtnDe = document.getElementById('lang-de');
-      const appHeaderTitle = document.getElementById('app-header-title');
-
-      // --- RENDER FUNCTIONS ---
-      function renderSidebar() {
-        sidebarModuleList.innerHTML = ''; // Clear existing list
-
-        TRAINING_DATA.forEach((module) => {
-          const isSelected = selectedModule?.id === module.id;
-          const li = document.createElement('li');
-          li.className = 'px-2 pb-2';
-          li.innerHTML = `
-            <button
-              data-module-id="${module.id}"
-              class="w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-start gap-4 ${
-                isSelected ? 'bg-indigo-600/80 shadow-lg' : 'hover:bg-gray-700/50'
-              }"
-              aria-label="${module.title[currentLanguage]}"
-              role="menuitem"
-              aria-current="${isSelected ? 'true' : 'false'}"
-            >
-              <div class="relative flex-shrink-0">
-                <img 
-                  src="${module.thumbnailUrl}" 
-                  alt="${module.title[currentLanguage]}" 
-                  class="w-32 h-20 object-cover rounded-md"
-                  onerror="this.onerror=null;this.src='https://via.placeholder.com/128x80?text=No+Image';"
-                />
-                <div class="absolute inset-0 bg-black/30 rounded-md"></div>
-                <span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                  ${module.duration}
-                </span>
-                ${
-                  isSelected
-                    ? `<div class="absolute inset-0 flex items-center justify-center bg-indigo-600/50 rounded-md">${PlayIcon}</div>`
-                    : ''
-                }
+      const FilterControls = ({
+        searchTerm,
+        onSearchChange,
+        activeFilter,
+        onFilterChange,
+      }) => {
+        return (
+          <div className="bg-white p-4 rounded-xl shadow-md">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="relative w-full sm:w-auto sm:flex-grow">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <SearchIcon className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                          type="text"
+                          placeholder="Search by title..."
+                          value={searchTerm}
+                          onChange={(e) => onSearchChange(e.target.value)}
+                          className="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2"
+                          aria-label="Search resources"
+                      />
+                  </div>
+                  <div className="flex items-center gap-x-2 flex-shrink-0">
+                      <FilterButton label="All" filterValue="ALL" activeFilter={activeFilter} onClick={onFilterChange} />
+                      <FilterButton label="Video" filterValue={FileType.VIDEO} activeFilter={activeFilter} onClick={onFilterChange} />
+                      <FilterButton label="PDF" filterValue={FileType.PDF} activeFilter={activeFilter} onClick={onFilterChange} />
+                  </div>
               </div>
-              <div class="flex-1">
-                <h3 class="text-sm font-semibold ${
-                  isSelected ? 'text-white' : 'text-gray-200'
-                }">
-                  ${module.title[currentLanguage]}
-                </h3>
+          </div>
+        );
+      };
+
+      const FileTable = ({ files }) => {
+        return (
+          <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+            <div className="hidden md:grid md:grid-cols-12 md:gap-x-6 bg-emerald-800">
+              <div className="md:col-span-6 px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                File Title
               </div>
-            </button>
-          `;
-          sidebarModuleList.appendChild(li);
-        });
-
-        // Add event listeners to new buttons
-        sidebarModuleList.querySelectorAll('button').forEach((button) => {
-          button.addEventListener('click', () => {
-            const moduleId = button.getAttribute('data-module-id');
-            if (moduleId) {
-              handleSelectModule(moduleId);
-            }
-          });
-        });
-      }
-
-      function renderMainContent() {
-        if (selectedModule) {
-          mainContent.innerHTML = `
-            <div class="max-w-4xl mx-auto">
-              <div class="w-full aspect-video bg-black rounded-lg shadow-2xl overflow-hidden">
-                <video controls class="w-full h-full" title="${
-                  selectedModule.title[currentLanguage]
-                }" key="${selectedModule.id}">
-                  <source src="${selectedModule.videoUrl}" type="video/mp4" />
-                  Your browser does not support the video tag. Please try a different browser.
-                </video>
+              <div className="md:col-span-3 px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                File Type
               </div>
-
-              <div class="mt-6">
-                <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  ${selectedModule.title[currentLanguage]}
-                </h1>
-                <p class="mt-3 text-base text-gray-300">
-                  ${selectedModule.description[currentLanguage]}
-                </p>
-                <div class="mt-6">
-                  <a
-                    href="${selectedModule.pdfUrl}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 transition-colors duration-200"
-                  >
-                    ${PdfIcon}
-                    <span data-t="viewPdf">${t('viewPdf')}</span>
-                  </a>
+              <div className="md:col-span-3 px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                Link
+              </div>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {files.length > 0 ? (
+                files.map((file, index) => (
+                  <FileRow key={`${file.title}-${index}`} file={file} />
+                ))
+              ) : (
+                <div className="text-center py-12 px-6 text-gray-500">
+                  <p className="text-lg font-semibold">No resources found</p>
+                  <p className="mt-1 text-sm">Try adjusting your search or filter.</p>
                 </div>
-              </div>
-              
-              <div id="local-setup-info" class="mt-8 p-4 border-l-4 border-teal-400 bg-gray-800 text-teal-100 rounded-r-md">
-                <!-- Info box content will be populated by updateUIForLanguage -->
-              </div>
+              )}
             </div>
-          `;
-        } else {
-          mainContent.innerHTML = `
-            <div class="flex items-center justify-center h-full">
-              <div class="text-center">
-                <h2 class="text-2xl font-semibold text-gray-400" data-t="noModulesTitle">${t(
-                  'noModulesTitle'
-                )}</h2>
-                <p class="mt-2 text-gray-500">
-                  <span data-t="noModulesText1">${t('noModulesText1')}</span>
-                  <code class="bg-gray-700 text-gray-300 p-1 rounded-md">this file</code>
-                  <span data-t="noModulesText2">${t('noModulesText2')}</span>
-                </p>
+          </div>
+        );
+      };
+      
+      // --- Main App Component ---
+      const App = () => {
+        const [searchTerm, setSearchTerm] = useState('');
+        const [filterType, setFilterType] = useState('ALL');
+
+        const filteredFiles = useMemo(() => {
+          return fileData
+            .filter((file) => {
+              if (filterType === 'ALL') return true;
+              return file.type === filterType;
+            })
+            .filter((file) =>
+              file.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }, [searchTerm, filterType]);
+
+        return (
+          <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+            <header className="bg-white shadow-sm">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Resource Library</h1>
+                <p className="mt-1 text-sm sm:text-base text-gray-600">Your central hub for important documents and videos.</p>
               </div>
-            </div>
-          `;
-        }
+            </header>
+            <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+              <FilterControls
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  activeFilter={filterType}
+                  onFilterChange={setFilterType}
+              />
+              <div className="mt-6">
+                  <FileTable files={filteredFiles} />
+              </div>
+            </main>
+            <footer className="text-center py-6 text-sm text-gray-500">
+              <p>&copy; {new Date().getFullYear()} Resource Library. All rights reserved.</p>
+            </footer>
+          </div>
+        );
+      };
+
+      // --- App Mounting Logic ---
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error("Could not find root element to mount to");
       }
 
-      function updateUIForLanguage() {
-        // Update static text elements
-        document.querySelectorAll('[data-t]').forEach((el) => {
-          const key = el.getAttribute('data-t');
-          if (key) {
-            el.textContent = t(key);
-          }
-        });
-
-        // Update language button styles
-        if (currentLanguage === 'en') {
-          langBtnEn.className = 'px-3 py-1 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white';
-          langBtnDe.className = 'px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-300 hover:bg-gray-700';
-          langBtnEn.setAttribute('aria-pressed', 'true');
-          langBtnDe.setAttribute('aria-pressed', 'false');
-        } else {
-          langBtnDe.className = 'px-3 py-1 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white';
-          langBtnEn.className = 'px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-300 hover:bg-gray-700';
-          langBtnDe.setAttribute('aria-pressed', 'true');
-          langBtnEn.setAttribute('aria-pressed', 'false');
-        }
-        
-        // Re-render dynamic components
-        renderMainContent();
-        renderSidebar();
-
-        // Update complex info box content
-        const infoBox = document.getElementById('local-setup-info');
-        if (infoBox) {
-          infoBox.innerHTML = `
-            <div class="flex items-start gap-3">
-              <div class="pt-1">${InfoIcon}</div>
-              <div>
-                <h4 class="font-bold" data-t="localSetupTitle">${t('localSetupTitle')}</h4>
-                <p class="text-sm">
-                  ${t('localSetupInfo1')}<code class="bg-gray-700 px-1 rounded">videos/</code>
-                  ${t('localSetupInfo2')}<code class="bg-gray-700 px-1 rounded">pdfs/</code>
-                  ${t('localSetupInfo3')}<code class="bg-gray-700 px-1 rounded">thumbnails/</code>.
-                  ${t('localSetupInfo4')}<code class="bg-gray-700 px-1 rounded">TRAINING_DATA</code> in this file
-                  ${t('localSetupInfo5')}
-                </p>
-              </div>
-            </div>
-          `;
-        }
-      }
-
-      // --- EVENT HANDLERS ---
-      function handleSelectModule(id) {
-        selectedModule = TRAINING_DATA.find((m) => m.id === id) || null;
-        renderSidebar(); // Re-render sidebar for selection highlight
-        renderMainContent(); // Re-render main content for new module
-        // Update info text which is part of main content
-        const infoBox = document.getElementById('local-setup-info');
-        if (infoBox) {
-          infoBox.innerHTML = `
-            <div class="flex items-start gap-3">
-              <div class="pt-1">${InfoIcon}</div>
-              <div>
-                <h4 class="font-bold" data-t="localSetupTitle">${t('localSetupTitle')}</h4>
-                <p class="text-sm">
-                  ${t('localSetupInfo1')}<code class="bg-gray-700 px-1 rounded">videos/</code>
-                  ${t('localSetupInfo2')}<code class="bg-gray-700 px-1 rounded">pdfs/</code>
-                  ${t('localSetupInfo3')}<code class="bg-gray-700 px-1 rounded">thumbnails/</code>.
-                  ${t('localSetupInfo4')}<code class="bg-gray-700 px-1 rounded">TRAINING_DATA</code> in this file
-                  ${t('localSetupInfo5')}
-                </p>
-              </div>
-            </div>
-          `;
-        }
-      }
-
-      function handleSetLanguage(lang) {
-        currentLanguage = lang;
-        try {
-          localStorage.setItem('training-hub-language', lang);
-        } catch (e) {
-          console.error('Could not save language to localStorage', e);
-        }
-        document.documentElement.lang = lang; // Update page language for accessibility
-        updateUIForLanguage();
-      }
-
-      // --- INITIALIZATION ---
-      document.addEventListener('DOMContentLoaded', () => {
-        // Inject logo
-        appHeaderTitle.insertAdjacentHTML('afterbegin', LogoIcon);
-
-        // Load language from localStorage
-        try {
-          const storedLang = localStorage.getItem('training-hub-language');
-          if (storedLang === 'de') {
-            currentLanguage = 'de';
-          }
-        } catch (e) {
-          console.error('Could not access localStorage', e);
-        }
-
-        // Add event listeners for language buttons
-        langBtnEn.addEventListener('click', () => handleSetLanguage('en'));
-        langBtnDe.addEventListener('click', () => handleSetLanguage('de'));
-
-        // Initial render
-        updateUIForLanguage();
-      });
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
     </script>
   </body>
 </html>
