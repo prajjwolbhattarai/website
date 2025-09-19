@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campaign Brief Manager</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for in-browser JSX/TSX transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      'use strict';
+
+      // --- From types.ts ---
+      const CreativeStatus = {
+        DRAFTED: 'Drafted',
+        APPROVED: 'Approved',
+        PENDING_CLIENT_FEEDBACK: 'Pending Client Feedback',
+        IN_DESIGN: 'In Design',
+        FINALIZED: 'Finalized',
+        STORYBOARD: 'Storyboard',
+        IN_PRODUCTION: 'In Production',
+        LIVE: 'Live',
+        QA_PENDING: 'QA Pending',
+        TRACKING_VERIFIED: 'Tracking Verified',
+      };
+
+      const ReportingFrequency = {
+        DAILY: 'Daily',
+        WEEKLY: 'Weekly',
+        BIWEEKLY: 'Biweekly',
+        MONTHLY: 'Monthly',
+      };
+
+
+      // --- From components/Icons.tsx ---
+      const UserCheck = (props) => (
+        <svg
+          {...props}
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <polyline points="16 11 18 13 22 9" />
+        </svg>
+      );
+
+      const FileText = (props) => (
+        <svg
+          {...props}
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <line x1="10" y1="9" x2="8" y2="9" />
+        </svg>
+      );
+
+      const Check = (props) => (
+          <svg 
+              {...props}
+              xmlns="http://www.w3.org/2000/svg" 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+          >
+              <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+      );
+
+      // --- From components/ui/Card.tsx ---
+      const Card = ({ children, className = '' }) => (
+        <div className={`bg-white overflow-hidden shadow-md rounded-lg ${className}`}>
+          {children}
+        </div>
+      );
+
+      const CardHeader = ({ children, className = '' }) => (
+        <div className={`p-4 sm:p-6 border-b border-slate-200 ${className}`}>
+          {children}
+        </div>
+      );
+
+      const CardTitle = ({ children, className = '' }) => (
+        <h2 className={`text-lg font-semibold text-slate-900 ${className}`}>
+          {children}
+        </h2>
+      );
+
+      const CardDescription = ({ children, className = '' }) => (
+        <p className={`mt-1 text-sm text-slate-500 ${className}`}>
+          {children}
+        </p>
+      );
+
+      const CardContent = ({ children, className = '' }) => (
+        <div className={`p-4 sm:p-6 ${className}`}>
+          {children}
+        </div>
+      );
+      
+      // --- Shared Form Helper Components ---
+      const InputGroup = ({ label, name, ...props }) => (
+        <div className={props.className}>
+          <label htmlFor={name} className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+          <input id={name} name={name} {...props} className="form-input" />
+        </div>
+      );
+
+      const TextAreaGroup = ({ label, name, ...props }) => (
+        <div className={props.className}>
+          <label htmlFor={name} className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+          <textarea id={name} name={name} rows={3} {...props} className="form-textarea" />
+        </div>
+      );
+      
+      const Checkbox = ({ label, checked, onChange }) => (
+        <label className="flex items-center space-x-3 cursor-pointer">
+          <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+          <span className="text-sm text-slate-700">{label}</span>
+        </label>
+      );
+      
+      const SelectGroup = ({ label, name, options, ...props }) => (
+          <div className={props.className}>
+              <label htmlFor={name} className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+              <select id={name} name={name} {...props} className="form-select">
+                  {options.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                  ))}
+              </select>
+          </div>
+      );
+
+
+      // --- From components/ClientIntakeForm.tsx ---
+      const ClientIntakeForm = () => {
+        const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+        const initialIntakeState = {
+          clientNameCompany: '', primaryContactPerson: '', primaryContactEmail: '', primaryContactPhone: '', secondaryContact: '', dateOfSubmission: new Date().toISOString().split('T')[0], expectedLaunchDate: '',
+          productServiceName: '', productServiceDescription: '', usps: '', pricingOfferDetails: '', competitors: '',
+          objectives: { brandAwareness: false, leadGeneration: false, salesConversions: false, appInstalls: false, engagement: false, websiteTraffic: false, other: '' },
+          successKpis: '',
+          geographicLocations: '', demographics: '', languages: '', psychographics: '', existingCustomerSegments: '', exclusions: '',
+          platforms: { googleAds: false, meta: false, linkedIn: false, tiktok: false, twitterX: false, other: '' },
+          accountIds: { googleAdsId: '', metaBusinessManagerId: '', linkedInPageId: '', websiteAnalytics: '' },
+          assets: { logo: false, brandGuidelines: false, imagesVideos: false, productPhotos: false, copyMessaging: false },
+          landingPageUrls: '', trackingPixelsInstalled: '', trackingPixelsDetails: '',
+          totalBudget: '', dailyMonthlySplit: '', flightStartDate: '', flightEndDate: '', specialNotes: '',
+          disclaimers: '', restrictedContent: '', assetConsent: false,
+        };
+
+        const [formData, setFormData] = React.useState(initialIntakeState);
+        const [isSubmitting, setIsSubmitting] = React.useState(false);
+        const [submitted, setSubmitted] = React.useState(false);
+        const [error, setError] = React.useState(null);
+
+        const handleChange = (e) => {
+          const { name, value, type } = e.target;
+          const isCheckbox = type === 'checkbox';
+          setFormData(prev => ({ ...prev, [name]: isCheckbox ? e.target.checked : value }));
+        };
+        
+        const handleNestedChange = (parent, child, value) => {
+          setFormData(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: value } }));
+        };
+        
+        const handleCheckboxGroupChange = (category, name) => {
+          setFormData(prev => ({ ...prev, [category]: { ...prev[category], [name]: !prev[category][name] } }));
+        };
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          if (GOOGLE_SCRIPT_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+              alert('Please paste your Google Apps Script Web App URL in the HTML file');
+              return;
+          }
+          setIsSubmitting(true);
+          setError(null);
+          const dataToSend = { ...formData, formType: 'clientIntake', objectives: JSON.stringify(formData.objectives), platforms: JSON.stringify(formData.platforms), accountIds: JSON.stringify(formData.accountIds), assets: JSON.stringify(formData.assets) };
+          try {
+              await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) });
+              setSubmitted(true);
+          } catch (err) {
+              console.error('Submission error:', err);
+              setError('There was an error submitting the form. Please try again.');
+          } finally {
+              setIsSubmitting(false);
+          }
+        };
+
+        if (submitted) {
+          return (
+            <Card>
+              <CardHeader className="text-center">
+                <Check className="w-16 h-16 text-green-500 mx-auto" />
+                <CardTitle className="mt-4">Thank You!</CardTitle>
+                <CardDescription>The client intake form has been submitted successfully.</CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <button onClick={() => { setSubmitted(false); setFormData(initialIntakeState);}} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">Submit Another Form</button>
+              </CardContent>
+            </Card>
+          );
+        }
+
+        return (
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {error && <p className="mb-4 text-sm text-center text-red-600 bg-red-100 p-3 rounded-md">{error}</p>}
+            <Card>
+              <CardHeader><CardTitle>A. Basic Information</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Client Name & Company" name="clientNameCompany" value={formData.clientNameCompany} onChange={handleChange} required />
+                <InputGroup label="Primary Contact Person (Name, Role)" name="primaryContactPerson" value={formData.primaryContactPerson} onChange={handleChange} required />
+                <InputGroup label="Primary Contact Email" name="primaryContactEmail" type="email" value={formData.primaryContactEmail} onChange={handleChange} required />
+                <InputGroup label="Primary Contact Phone" name="primaryContactPhone" type="tel" value={formData.primaryContactPhone} onChange={handleChange} />
+                <InputGroup label="Secondary Contact (if any)" name="secondaryContact" value={formData.secondaryContact} onChange={handleChange} />
+                <InputGroup label="Date of Submission" name="dateOfSubmission" type="date" value={formData.dateOfSubmission} onChange={handleChange} required />
+                <InputGroup label="Deadline / Expected Launch Date" name="expectedLaunchDate" type="date" value={formData.expectedLaunchDate} onChange={handleChange} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>B. Product / Service Details</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 gap-6">
+                <InputGroup label="Product / Service Name" name="productServiceName" value={formData.productServiceName} onChange={handleChange} required />
+                <TextAreaGroup label="Brief Description (what is it, why does it matter?)" name="productServiceDescription" value={formData.productServiceDescription} onChange={handleChange} required />
+                <TextAreaGroup label="Unique Selling Points (USPs)" name="usps" value={formData.usps} onChange={handleChange} required />
+                <InputGroup label="Pricing / Offer Details (if relevant)" name="pricingOfferDetails" value={formData.pricingOfferDetails} onChange={handleChange} />
+                <TextAreaGroup label="Competitors (list main 2–3)" name="competitors" value={formData.competitors} onChange={handleChange} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>C. Campaign Goals</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Main Objective(s)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Checkbox label="Brand awareness" checked={formData.objectives.brandAwareness} onChange={() => handleCheckboxGroupChange('objectives', 'brandAwareness')} />
+                    <Checkbox label="Lead generation" checked={formData.objectives.leadGeneration} onChange={() => handleCheckboxGroupChange('objectives', 'leadGeneration')} />
+                    <Checkbox label="Sales / Conversions" checked={formData.objectives.salesConversions} onChange={() => handleCheckboxGroupChange('objectives', 'salesConversions')} />
+                    <Checkbox label="App Installs" checked={formData.objectives.appInstalls} onChange={() => handleCheckboxGroupChange('objectives', 'appInstalls')} />
+                    <Checkbox label="Engagement" checked={formData.objectives.engagement} onChange={() => handleCheckboxGroupChange('objectives', 'engagement')} />
+                    <Checkbox label="Website traffic" checked={formData.objectives.websiteTraffic} onChange={() => handleCheckboxGroupChange('objectives', 'websiteTraffic')} />
+                  </div>
+                  <InputGroup label="Other Objective" name="other" value={formData.objectives.other} onChange={(e) => handleNestedChange('objectives', 'other', e.target.value)} className="mt-4" />
+                </div>
+                <TextAreaGroup label="Success KPIs" name="successKpis" value={formData.successKpis} onChange={handleChange} placeholder="e.g., #leads, CPL < $50, ROAS > 3:1, CTR > 2%" required />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>D. Target Audience</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <TextAreaGroup label="Geographic Locations" name="geographicLocations" value={formData.geographicLocations} onChange={handleChange} placeholder="e.g., USA, Canada (exclude Quebec)" />
+                <TextAreaGroup label="Demographics" name="demographics" value={formData.demographics} onChange={handleChange} placeholder="e.g., Age 25-45, Male, Household Income > $100k" />
+                <TextAreaGroup label="Languages" name="languages" value={formData.languages} onChange={handleChange} placeholder="e.g., English, Spanish" />
+                <TextAreaGroup label="Psychographics / Interests" name="psychographics" value={formData.psychographics} onChange={handleChange} placeholder="e.g., Interested in tech, small business owners, reads Forbes" />
+                <TextAreaGroup label="Existing Customer Segments / CRM data (if available)" name="existingCustomerSegments" value={formData.existingCustomerSegments} onChange={handleChange} placeholder="e.g., Past purchasers, newsletter subscribers" />
+                <TextAreaGroup label="Exclusions (audiences we should NOT target)" name="exclusions" value={formData.exclusions} onChange={handleChange} placeholder="e.g., Existing customers, employees" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>E. Channels / Platforms</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Preferred platforms</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <Checkbox label="Google Ads" checked={formData.platforms.googleAds} onChange={() => handleCheckboxGroupChange('platforms', 'googleAds')} />
+                    <Checkbox label="Meta (FB/IG)" checked={formData.platforms.meta} onChange={() => handleCheckboxGroupChange('platforms', 'meta')} />
+                    <Checkbox label="LinkedIn" checked={formData.platforms.linkedIn} onChange={() => handleCheckboxGroupChange('platforms', 'linkedIn')} />
+                    <Checkbox label="TikTok" checked={formData.platforms.tiktok} onChange={() => handleCheckboxGroupChange('platforms', 'tiktok')} />
+                    <Checkbox label="X (Twitter)" checked={formData.platforms.twitterX} onChange={() => handleCheckboxGroupChange('platforms', 'twitterX')} />
+                  </div>
+                  <InputGroup label="Other Platform" name="other" value={formData.platforms.other} onChange={(e) => handleNestedChange('platforms', 'other', e.target.value)} className="mt-4" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Existing Accounts (provide access)</h3>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputGroup label="Google Ads ID" name="googleAdsId" value={formData.accountIds.googleAdsId} onChange={(e) => handleNestedChange('accountIds', 'googleAdsId', e.target.value)} />
+                    <InputGroup label="Meta Business Manager ID" name="metaBusinessManagerId" value={formData.accountIds.metaBusinessManagerId} onChange={(e) => handleNestedChange('accountIds', 'metaBusinessManagerId', e.target.value)} />
+                    <InputGroup label="LinkedIn Page ID" name="linkedInPageId" value={formData.accountIds.linkedInPageId} onChange={(e) => handleNestedChange('accountIds', 'linkedInPageId', e.target.value)} />
+                    <InputGroup label="Website Analytics (GA4, GTM, etc.)" name="websiteAnalytics" value={formData.accountIds.websiteAnalytics} onChange={(e) => handleNestedChange('accountIds', 'websiteAnalytics', e.target.value)} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>F. Creative & Assets Checklist</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <Checkbox label="Logo (high resolution)" checked={formData.assets.logo} onChange={() => handleCheckboxGroupChange('assets', 'logo')} />
+                  <Checkbox label="Brand Guidelines" checked={formData.assets.brandGuidelines} onChange={() => handleCheckboxGroupChange('assets', 'brandGuidelines')} />
+                  <Checkbox label="Approved Images / Videos" checked={formData.assets.imagesVideos} onChange={() => handleCheckboxGroupChange('assets', 'imagesVideos')} />
+                  <Checkbox label="Product Photos / Lifestyle Photos" checked={formData.assets.productPhotos} onChange={() => handleCheckboxGroupChange('assets', 'productPhotos')} />
+                  <Checkbox label="Copy / Messaging (if available)" checked={formData.assets.copyMessaging} onChange={() => handleCheckboxGroupChange('assets', 'copyMessaging')} />
+                </div>
+                <InputGroup label="Landing Page URL(s)" name="landingPageUrls" value={formData.landingPageUrls} onChange={handleChange} placeholder="https://example.com/landing" />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Tracking Pixels Installed?</label>
+                  <div className="mt-2 flex items-center space-x-4">
+                    <label className="flex items-center"><input type="radio" name="trackingPixelsInstalled" value="Yes" checked={formData.trackingPixelsInstalled === 'Yes'} onChange={handleChange} className="form-radio" /><span className="ml-2 text-sm text-slate-700">Yes</span></label>
+                    <label className="flex items-center"><input type="radio" name="trackingPixelsInstalled" value="No" checked={formData.trackingPixelsInstalled === 'No'} onChange={handleChange} className="form-radio" /><span className="ml-2 text-sm text-slate-700">No</span></label>
+                  </div>
+                  {formData.trackingPixelsInstalled === 'Yes' && (
+                    <InputGroup label="Specify which" name="trackingPixelsDetails" value={formData.trackingPixelsDetails} onChange={handleChange} className="mt-2" placeholder="e.g., GA4, Meta Pixel, LinkedIn Insight Tag"/>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>G. Budget & Timeline</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Total Budget (USD)" name="totalBudget" type="number" value={String(formData.totalBudget)} onChange={handleChange} placeholder="e.g., 10000" />
+                <InputGroup label="Daily / Monthly Split" name="dailyMonthlySplit" value={formData.dailyMonthlySplit} onChange={handleChange} placeholder="e.g., $3000/month" />
+                <InputGroup label="Flight Dates: Start" name="flightStartDate" type="date" value={formData.flightStartDate} onChange={handleChange} />
+                <InputGroup label="Flight Dates: End" name="flightEndDate" type="date" value={formData.flightEndDate} onChange={handleChange} />
+                <div className="md:col-span-2"><TextAreaGroup label="Special Notes" name="specialNotes" value={formData.specialNotes} onChange={handleChange} placeholder="e.g., seasonality, product launch event, sale dates" /></div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>H. Legal / Compliance</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <TextAreaGroup label="Do we need disclaimers?" name="disclaimers" value={formData.disclaimers} onChange={handleChange} placeholder="e.g., 'Results may vary', specific legal text" />
+                <TextAreaGroup label="Any restricted content?" name="restrictedContent" value={formData.restrictedContent} onChange={handleChange} placeholder="e.g., alcohol, financial services" />
+                <Checkbox label="I confirm we have consent for use of client assets across campaigns." checked={formData.assetConsent} onChange={() => setFormData(p => ({...p, assetConsent: !p.assetConsent}))} />
+              </CardContent>
+            </Card>
+            <div className="flex justify-end pt-4">
+              <button type="submit" disabled={isSubmitting} className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                {isSubmitting ? 'Submitting...' : 'Submit Intake Form'}
+              </button>
+            </div>
+          </form>
+        );
+      };
+
+      // --- From components/InternalBriefForm.tsx ---
+      const InternalBriefForm = () => {
+        const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+        
+        const initialBriefState = {
+          clientName: '', campaignTitle: '', launchDate: '', endDate: '', campaignOwner: '',
+          primaryObjective: '', secondaryObjective: '', measurementMethod: '',
+          platforms: [], campaignTypes: '', accountIds: '', attributionModel: '', trackingConfirmed: 'No',
+          coreAudience: '', customAudiences: '', lookalikeAudiences: '', exclusions: '',
+          totalBudget: '', dailyMonthlyAllocation: '', biddingStrategy: '', platformSplit: '',
+          contentStatus: { adCopy: CreativeStatus.DRAFTED, visuals: CreativeStatus.IN_DESIGN, videos: CreativeStatus.STORYBOARD, landingPage: CreativeStatus.QA_PENDING },
+          primaryCta: '', secondaryCta: '',
+          agencyDeliverables: '', clientDeliverables: '', dependencies: '',
+          kpis: '', reportingFrequency: ReportingFrequency.WEEKLY, dashboardLink: '', optimizationNotes: '',
+          knownRisks: '', mitigationPlan: '',
+        };
+
+        const [formData, setFormData] = React.useState(initialBriefState);
+        const [isSubmitting, setIsSubmitting] = React.useState(false);
+        const [submitted, setSubmitted] = React.useState(false);
+        const [error, setError] = React.useState(null);
+
+        const handleChange = (e) => {
+            const { name, value } = e.target;
+            setFormData(prev => ({ ...prev, [name]: value }));
+        };
+
+        const handleNestedChange = (parent, child, value) => {
+            setFormData(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: value } }));
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            if (GOOGLE_SCRIPT_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                alert('Please paste your Google Apps Script Web App URL in the HTML file');
+                return;
+            }
+            setIsSubmitting(true);
+            setError(null);
+            const dataToSend = { ...formData, formType: 'internalBrief', contentStatus: JSON.stringify(formData.contentStatus), platforms: formData.platforms.join(', ') };
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) });
+                setSubmitted(true);
+            } catch (err) {
+                console.error('Submission error:', err);
+                setError('There was an error submitting the form. Please try again.');
+            } finally {
+                setIsSubmitting(false);
+            }
+        };
+        
+        if (submitted) {
+            return (
+              <Card>
+                <CardHeader className="text-center">
+                  <Check className="w-16 h-16 text-green-500 mx-auto" />
+                  <CardTitle className="mt-4">Brief Submitted!</CardTitle>
+                  <CardDescription>The internal execution brief has been successfully saved.</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <button onClick={() => { setSubmitted(false); setFormData(initialBriefState);}} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">Create Another Brief</button>
+                </CardContent>
+              </Card>
+            );
+        }
+
+        return (
+            <form onSubmit={handleSubmit} className="space-y-8">
+                {error && <p className="mb-4 text-sm text-center text-red-600 bg-red-100 p-3 rounded-md">{error}</p>}
+                <Card><CardHeader><CardTitle>Internal Execution Brief</CardTitle><CardDescription>Translate client goals into an actionable plan for the execution team.</CardDescription></CardHeader></Card>
+                <Card>
+                    <CardHeader><CardTitle>A. Campaign Overview</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputGroup label="Client Name / Project Name" name="clientName" value={formData.clientName} onChange={handleChange} required />
+                        <InputGroup label="Campaign Title" name="campaignTitle" value={formData.campaignTitle} onChange={handleChange} required />
+                        <InputGroup label="Launch Date" name="launchDate" type="date" value={formData.launchDate} onChange={handleChange} />
+                        <InputGroup label="End Date" name="endDate" type="date" value={formData.endDate} onChange={handleChange} />
+                        <InputGroup label="Campaign Owner / POC" name="campaignOwner" value={formData.campaignOwner} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>B. Campaign Objective(s)</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <TextAreaGroup label="Primary Objective" name="primaryObjective" value={formData.primaryObjective} onChange={handleChange} placeholder="e.g., generate 200 qualified leads by X date at max €50 CPL" />
+                        <TextAreaGroup label="Secondary Objective" name="secondaryObjective" value={formData.secondaryObjective} onChange={handleChange} placeholder="e.g., increase brand recall by 20% in market X" />
+                        <InputGroup label="Measurement Method" name="measurementMethod" value={formData.measurementMethod} onChange={handleChange} placeholder="e.g., GA4, Ads Manager, HubSpot, etc." />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>C. Platforms & Setup</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputGroup label="Platforms" name="platforms" value={formData.platforms.join(', ')} onChange={e => setFormData(p => ({...p, platforms: e.target.value.split(',').map(s => s.trim())}))} placeholder="Google, Meta, LinkedIn, TikTok" />
+                        <InputGroup label="Campaign Type(s)" name="campaignTypes" value={formData.campaignTypes} onChange={handleChange} placeholder="Search, Display, Video, Retargeting..." />
+                        <InputGroup label="Account IDs" name="accountIds" value={formData.accountIds} onChange={handleChange} />
+                        <InputGroup label="Attribution Model" name="attributionModel" value={formData.attributionModel} onChange={handleChange} />
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700">Tracking Setup Confirmed?</label>
+                            <div className="mt-2 flex items-center space-x-4">
+                                <label className="flex items-center"><input type="radio" name="trackingConfirmed" value="Yes" checked={formData.trackingConfirmed === 'Yes'} onChange={handleChange} className="form-radio" /><span className="ml-2 text-sm text-slate-700">Yes</span></label>
+                                <label className="flex items-center"><input type="radio" name="trackingConfirmed" value="No" checked={formData.trackingConfirmed === 'No'} onChange={handleChange} className="form-radio" /><span className="ml-2 text-sm text-slate-700">No</span></label>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>D. Target Audience(s)</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <TextAreaGroup label="Core Audience" name="coreAudience" value={formData.coreAudience} onChange={handleChange} placeholder="Demographics, geo, language" />
+                        <TextAreaGroup label="Custom Audience(s)" name="customAudiences" value={formData.customAudiences} onChange={handleChange} placeholder="CRM upload, website visitors, engagement" />
+                        <TextAreaGroup label="Lookalike / Similar Audiences" name="lookalikeAudiences" value={formData.lookalikeAudiences} onChange={handleChange} />
+                        <TextAreaGroup label="Exclusions" name="exclusions" value={formData.exclusions} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>E. Budget & Bidding</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputGroup label="Total Budget" name="totalBudget" value={formData.totalBudget} onChange={handleChange} />
+                        <InputGroup label="Daily / Monthly Allocation" name="dailyMonthlyAllocation" value={formData.dailyMonthlyAllocation} onChange={handleChange} />
+                        <InputGroup label="Bidding Strategy" name="biddingStrategy" value={formData.biddingStrategy} onChange={handleChange} placeholder="Manual CPC, Max Conversions, tROAS" />
+                        <InputGroup label="Platform Split (%)" name="platformSplit" value={formData.platformSplit} onChange={handleChange} placeholder="e.g., 60% Meta, 30% Google, 10% LinkedIn" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>F. Creative & Content Status</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <SelectGroup label="Ad Copy" name="adCopy" value={formData.contentStatus.adCopy} onChange={e => handleNestedChange('contentStatus', 'adCopy', e.target.value)} options={Object.values(CreativeStatus)} />
+                        <SelectGroup label="Visuals" name="visuals" value={formData.contentStatus.visuals} onChange={e => handleNestedChange('contentStatus', 'visuals', e.target.value)} options={Object.values(CreativeStatus)} />
+                        <SelectGroup label="Videos" name="videos" value={formData.contentStatus.videos} onChange={e => handleNestedChange('contentStatus', 'videos', e.target.value)} options={Object.values(CreativeStatus)} />
+                        <SelectGroup label="Landing Page" name="landingPage" value={formData.contentStatus.landingPage} onChange={e => handleNestedChange('contentStatus', 'landingPage', e.target.value)} options={Object.values(CreativeStatus)} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>G. Call-to-Action (CTA)</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputGroup label="Primary CTA(s)" name="primaryCta" value={formData.primaryCta} onChange={handleChange} placeholder="Book a Demo, Shop Now" />
+                        <InputGroup label="Secondary CTA(s)" name="secondaryCta" value={formData.secondaryCta} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>H. Deliverables & Responsibilities</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <TextAreaGroup label="What the Agency Delivers" name="agencyDeliverables" value={formData.agencyDeliverables} onChange={handleChange} />
+                        <TextAreaGroup label="What the Client Delivers" name="clientDeliverables" value={formData.clientDeliverables} onChange={handleChange} />
+                        <TextAreaGroup label="Dependencies" name="dependencies" value={formData.dependencies} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>I. KPIs & Reporting</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <InputGroup label="KPIs" name="kpis" value={formData.kpis} onChange={handleChange} placeholder="CTR, CPA, ROAS, etc." />
+                         <SelectGroup label="Reporting Frequency" name="reportingFrequency" value={formData.reportingFrequency} onChange={handleChange} options={Object.values(ReportingFrequency)} />
+                         <InputGroup className="md:col-span-2" label="Dashboard Link" name="dashboardLink" value={formData.dashboardLink} onChange={handleChange} />
+                         <TextAreaGroup className="md:col-span-2" label="Notes for Optimization Priorities" name="optimizationNotes" value={formData.optimizationNotes} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>J. Risk / Issues Log</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                         <TextAreaGroup label="Known risks" name="knownRisks" value={formData.knownRisks} onChange={handleChange} placeholder="e.g., delays in assets, limited budget" />
+                         <TextAreaGroup label="Mitigation plan" name="mitigationPlan" value={formData.mitigationPlan} onChange={handleChange} />
+                    </CardContent>
+                </Card>
+                <div className="flex justify-end pt-4">
+                    <button type="submit" disabled={isSubmitting} className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                      {isSubmitting ? 'Saving...' : 'Save & Finalize Brief'}
+                    </button>
+                </div>
+            </form>
+        )
+      };
+
+      // --- From App.tsx ---
+      const App = () => {
+        const [activeTab, setActiveTab] = React.useState('client');
+
+        const renderContent = React.useCallback(() => {
+          switch (activeTab) {
+            case 'client':
+              return <ClientIntakeForm />;
+            case 'internal':
+              return <InternalBriefForm />;
+            default:
+              return null;
+          }
+        }, [activeTab]);
+
+        const TabButton = ({ label, icon, isActive, onClick }) => {
+            const activeClasses = 'border-indigo-500 text-indigo-600';
+            const inactiveClasses = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
+            
+            return (
+                <button
+                    onClick={onClick}
+                    className={`flex items-center whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-t-md ${isActive ? activeClasses : inactiveClasses}`}
+                >
+                    {icon}
+                    <span className="ml-2">{label}</span>
+                </button>
+            );
+        };
+
+        return (
+          <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
+            <style>{`
+              .form-input, .form-textarea, .form-select {
+                  display: block; width: 100%; padding: 0.5rem 0.75rem; font-size: 1rem; line-height: 1.5; color: #334155;
+                  background-color: #fff; background-clip: padding-box; border: 1px solid #cbd5e1; border-radius: 0.375rem;
+                  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+              }
+              .form-input:focus, .form-textarea:focus, .form-select:focus {
+                  color: #334155; background-color: #fff; border-color: #4f46e5; outline: 0;
+                  box-shadow: 0 0 0 0.125rem rgba(79, 70, 229, 0.25);
+              }
+              .form-radio { height: 1rem; width: 1rem; }
+            `}</style>
+            <header className="bg-white shadow-sm sticky top-0 z-10">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Campaign Brief Manager</h1>
+                <p className="text-sm text-slate-500">Streamline your campaign workflow from client intake to execution.</p>
+              </div>
+            </header>
+            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="mb-8">
+                <div className="border-b border-slate-200">
+                  <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+                    <TabButton
+                      label="Client Intake & Checklist"
+                      icon={<UserCheck className="w-5 h-5" />}
+                      isActive={activeTab === 'client'}
+                      onClick={() => setActiveTab('client')}
+                    />
+                    <TabButton
+                      label="Internal Execution Brief"
+                      icon={<FileText className="w-5 h-5" />}
+                      isActive={activeTab === 'internal'}
+                      onClick={() => setActiveTab('internal')}
+                    />
+                  </nav>
+                </div>
+              </div>
+              <div>{renderContent()}</div>
+            </main>
+            <footer className="bg-white mt-12 py-4">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+                    <p>&copy; {new Date().getFullYear()} Campaign Brief Manager. All rights reserved.</p>
+                </div>
+            </footer>
+          </div>
+        );
+      };
+
+      // --- From index.tsx (Entry Point) ---
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error("Could not find root element to mount to");
+      }
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    </script>
+  </body>
+</html>
