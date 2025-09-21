@@ -120,15 +120,15 @@
         { id: 'online_verlaengerung', title: 'Online+ Laufzeit-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [{
             heading: 'Online+ Laufzeit-Upgrade',
             items: ['Onlinelaufzeit-Verlängeurng je Monat', '14-tägiger Datum-Refresh der Onlineanzeige', 'ideal für Dauervakanzen', 'Trafficsteigerung', 'mehr Aufmerksamkeit durch Dauerpräsenz', 'monatliche Übermittlung der Klickzahlen']
-        }], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+        }],},
         { id: 'power_traffic', title: 'Power-Traffic-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
             { heading: 'Online+ Traffic-Upgrade', items: ['Online Adds - Power-Traffic mit Werbeanzeige', 'im Internet in bis zu 350 Jobbörsen', '100% des Werbebudgets gehen in massive Werbemaßnahmen', 'Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de'] },
             { heading: 'Social Media', items: ['Premium-LinkedIn.com: zielgruppengenaue LinkedIn-Werbeanz. (hohe Reichw.)', 'Power-Traffic-LinkedIn.com: hoch budgetierte Werbeanzeige bei LinkedIn (sehr hohe Resonanz.)', 'Premium-Facebook/Instagram: zielgruppengenaue Facebook/Instagram-Werbeanz. (hohe Reichw.)', 'Power-Traffic-Facebook/Instagram: hoch budgetierte Werbeanzeige bei Facebook/Instagram (sehr hohe Resonanz.)', 'YouTube-Video: Video Ihrer Stellenanzeige (Topplatzierung Google)'] },
-        ], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+        ], },
         { id: 'ki_power_traffic', title: 'KI-Power-Traffic-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
             { heading: 'Online++ KI-Traffic Upgrade', items: ['KI - Power-Traffic mit Werbeanzeige', 'ihre Landingpage (Anzeige) im KI-Funnel', '100% des Werbebudgets gehen in massive Werbemaßnahmen', 'mehr Bewerber-Leads mehr Kontakte über KI-Powertraffic'] },
             { heading: 'KI-Leads-Kampagnen', items: ['Facebook- u. Google-Leads: hohe Bewerber-/Kontaktquote', 'Power-Traffic-LinkedIn.com: hoch budgetierte Werbeanzeige bei LinkedIn (sehr hohe Resonanz.)', 'Premium-Facebook/Instagram: zielgruppengenaue Facebook/Instagram-Werbeanz. (hohe Reichw.)', 'Power-Traffic-Facebook/Instagram: hoch budgetierte Werbeanzeige bei Facebook/Instagram (sehr hohe Resonanz.)', 'YouTube-Video: Video Ihrer Stellenanzeige (Topplatzierung Google)'] },
-        ], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+        ],  },
       ];
 
       // Component from components/PrintIcon.tsx
@@ -157,8 +157,8 @@
       const Header = ({ onPrint, onGeneratePdf, isGeneratingPdf, onCopy, isCopied }) => {
         return (
           <header className="bg-white shadow-md sticky top-0 z-10 print:hidden">
-            <div className="container mx-auto px-4 sm:px-6 md:px-8 py-3 flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-800">Job Advertisement Agreement</h1>
+            <div className="container mx-auto px-4 sm:px-6 md:px-8 py-3 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-2">
+              <h1 className="text-2xl font-bold text-gray-800 text-center sm:text-left">Job Advertisement Agreement</h1>
               <div className="flex items-center gap-3">
                   <button onClick={onGeneratePdf} disabled={isGeneratingPdf} className="flex items-center gap-2 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 disabled:bg-gray-400 disabled:cursor-wait">
                       <PdfIcon />
@@ -258,8 +258,8 @@
                             <h4 className="text-sm font-semibold mb-2 text-gray-600">Preisoptionen auswählen & bearbeiten</h4>
                             <div className="space-y-3">
                                 {Object.entries(rates).map(([tier, price]) => (
-                                    <div key={tier} className="grid grid-cols-3 items-center gap-4">
-                                        <div className="col-span-2 flex items-center">
+                                    <div key={tier} className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-4">
+                                        <div className="sm:col-span-2 flex items-center">
                                             <input type="radio" id={`${pkg.id}-${tier}`} name={`${pkg.id}-tier`} checked={details.pricingTier === tier} onChange={() => onChange(pkg.id, 'pricingTier', tier)} className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
                                             <label htmlFor={`${pkg.id}-${tier}`} className="ml-2 text-sm text-gray-700 font-medium">
                                                 {tierLabels[tier] || tier}
@@ -315,7 +315,7 @@
         
         const Logo = () => (
           <div className="text-right">
-            <img src="assets/img/stellenlogo.png" alt="StellenMarkt-direkt Logo" className="inline-block h-10" />
+            <img src="assets/img/stellenlogo.png" alt="StellenMarkt-direkt Logo" className="inline-block h-16 w-auto" />
           </div>
         );
 
@@ -344,7 +344,7 @@
 
         return (
           <div className="p-10 bg-white font-serif text-sm text-black" id="agreement-preview">
-            <header className="grid grid-cols-2 gap-8 mb-4">
+            <header className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-4">
               <div>
                   <p>{kundenInfo.firma}</p>
                   <p>{kundenInfo.ansprechpartner}</p>
@@ -380,14 +380,14 @@
               <h2 className="text-lg font-bold mt-1">Alles aus einer Hand - Print, Online und soziale Medien!!!</h2>
               <p className="text-xs mt-2">Stellenanzeigen nur in der Zeitung, nur Online, nur in einer Jobbörse, nur über Soziale Medien... eingleisig zu fahren, war noch nie eine gute Idee.</p>
               {selectedPackages.length > 0 && (
-                  <div className="my-6">
+                  <div className={`my-6 ${selectedPackages.length > 2 ? 'grid grid-cols-2 gap-4' : ''}`}>
                       {selectedPackages.map(pkg => {
                           const details = packages[pkg.id];
                           const tierKey = details.pricingTier || 'single';
                           const tierText = tierLabels[tierKey] ? `(${tierLabels[tierKey]})` : '';
                           return (
-                              <div key={pkg.id} className="mb-4 last:mb-0">
-                                   <h3 className="font-bold text-base mb-2 flex items-center border-t border-gray-300 pt-3">
+                              <div key={pkg.id} className={`border border-gray-300 rounded-lg p-4 ${selectedPackages.length <= 2 ? 'mb-4' : ''}`}>
+                                   <h3 className="font-bold text-base mb-2 flex items-center">
                                       <CheckedBoxIcon />
                                       IHRE ANZEIGE: {pkg.title} {tierText}
                                    </h3>
@@ -435,7 +435,7 @@
             <footer className="mt-16 pt-4 border-t-2 border-black">
               <h2 className="text-base font-bold">AUFTRAGSBESTÄTIGUNG</h2>
               <p className="text-xs mt-1 mb-8">(bitte per E-Mail bestätigen oder unterschrieben zurücksenden)</p>
-              <div className="grid grid-cols-2 gap-12 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 text-xs">
                   <div className="pt-8">
                       <div className="border-b border-black"></div>
                       <p className="mt-1">Unterschrift (Absender / Anbieter)</p>
@@ -582,44 +582,52 @@
         }, []);
 
         const handleGeneratePdf = useCallback(async () => {
-          setIsGeneratingPdf(true);
-          const element = document.getElementById('agreement-preview');
-          if (!element) {
-              setIsGeneratingPdf(false);
-              console.error("Preview element not found");
-              return;
-          }
-          try {
-              const canvas = await html2canvas(element, { scale: 1.5, useCORS: true });
-              const imgData = canvas.toDataURL('image/jpeg', 0.95);
-              const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
-              const pdfWidth = pdf.internal.pageSize.getWidth();
-              const pdfHeight = pdf.internal.pageSize.getHeight();
-              const canvasWidth = canvas.width;
-              const canvasHeight = canvas.height;
-              const ratio = canvasWidth / pdfWidth;
-              const imgHeight = canvasHeight / ratio;
-              let heightLeft = imgHeight;
-              let position = 0;
-              pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-              heightLeft -= pdfHeight;
-              while (heightLeft > 0) {
-                  position = heightLeft - imgHeight;
-                  pdf.addPage();
-                  pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-                  heightLeft -= pdfHeight;
-              }
-              const safeFilenamePart = (str) => str.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'na';
-              const recipientName = safeFilenamePart(state.kundenInfo.firma);
-              const senderName = safeFilenamePart(state.anbieterInfo.firma);
-              const date = state.angebotInfo.datum.replace(/\./g, '-');
-              const filename = `${recipientName}_${date}_${senderName}.pdf`;
-              pdf.save(filename);
-          } catch (error) {
-              console.error("Error generating PDF:", error);
-          } finally {
-              setIsGeneratingPdf(false);
-          }
+            setIsGeneratingPdf(true);
+            const element = document.getElementById('agreement-preview');
+            if (!element) {
+                setIsGeneratingPdf(false);
+                console.error("Preview element not found");
+                return;
+            }
+            try {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                
+                const canvasAspectRatio = canvasWidth / canvasHeight;
+                const pdfAspectRatio = pdfWidth / pdfHeight;
+
+                let finalWidth, finalHeight;
+
+                if (pdfAspectRatio > canvasAspectRatio) {
+                    finalHeight = pdfHeight;
+                    finalWidth = finalHeight * canvasAspectRatio;
+                } else {
+                    finalWidth = pdfWidth;
+                    finalHeight = finalWidth / canvasAspectRatio;
+                }
+                
+                const x = (pdfWidth - finalWidth) / 2;
+                const y = (pdfHeight - finalHeight) / 2;
+
+                pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight);
+
+                const safeFilenamePart = (str) => str.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'na';
+                const recipientName = safeFilenamePart(state.kundenInfo.firma);
+                const senderName = safeFilenamePart(state.anbieterInfo.firma);
+                const date = state.angebotInfo.datum.replace(/\./g, '-');
+                const filename = `${recipientName}_${date}_${senderName}.pdf`;
+                pdf.save(filename);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+            } finally {
+                setIsGeneratingPdf(false);
+            }
         }, [state.kundenInfo.firma, state.anbieterInfo.firma, state.angebotInfo.datum]);
 
         return (
@@ -636,10 +644,14 @@
                   <PackageSelector state={state} onInfoChange={handleInfoChange} onPackageChange={handlePackageChange} onAnnahmeschlussChange={handleAnnahmeschlussChange} onRateCardChange={handleRateCardChange}/>
                 </div>
               </div>
-              <div className="lg:fixed lg:right-8 lg:top-[100px] lg:w-[calc(50%-4rem)] lg:h-[calc(100vh-120px)] print:shadow-none print:fixed print:top-0 print:left-0 print:w-full print:h-full print:overflow-visible">
-                 <div className="bg-white rounded-lg shadow-2xl w-full h-full overflow-y-auto">
+              <div className="print:block">
+                <div className="bg-gray-100 p-4 rounded-lg shadow-inner overflow-auto lg:h-[calc(100vh-120px)]">
+                  <div className="mx-auto" style={{ width: '210mm' }}>
+                    <div className="bg-white shadow-2xl">
                       <AgreementPreview state={state} totals={{ subTotal, vat, total }} />
-                 </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </main>
           </div>
