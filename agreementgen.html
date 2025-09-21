@@ -315,8 +315,7 @@
         
         const Logo = () => (
           <div className="text-right">
-            <span className="text-4xl font-bold text-gray-800 tracking-tight" style={{fontFamily: 'Arial, sans-serif'}}>Stellen</span>
-            <span className="text-4xl font-bold text-red-600 tracking-tight ml-1" style={{fontFamily: 'Arial, sans-serif'}}>Markt-direkt</span>
+            <img src="assets/img/stellenlogo.png" alt="StellenMarkt-direkt Logo" className="inline-block h-10" />
           </div>
         );
 
@@ -593,7 +592,7 @@
           try {
               const canvas = await html2canvas(element, { scale: 1.5, useCORS: true });
               const imgData = canvas.toDataURL('image/jpeg', 0.95);
-              const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+              const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
               const pdfWidth = pdf.internal.pageSize.getWidth();
               const pdfHeight = pdf.internal.pageSize.getHeight();
               const canvasWidth = canvas.width;
