@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Agreement Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-gray-200">
+    <div id="root"></div>
+    <script type="text/babel">
+      // --- START OF COMBINED CODE ---
+
+      // Constants from constants.ts
+      const DEFAULT_RATE_CARD = {
+        premium_100: { single: '395', '5er': '295', '10er': '245' },
+        premium_175: { single: '595', '5er': '395', '10er': '325' },
+        premium_250: { single: '990', '5er': '690', '10er': '590' },
+        premium_300: { single: '1490', '5er': '990', '10er': '790' },
+        premium_350: { single: '1990', '5er': '1190', '10er': '990' },
+        premium_500: { single: '2490', '5er': '1890', '10er': '1490' },
+        premium_700: { single: '2990', '5er': '2580', '10er': '1790' },
+        premium_1000: { single: '3990', '5er': '2990', '10er': '1990' },
+        premium_1500: { single: '4990', '5er': '3580', '10er': '2580' },
+        premium_2500: { single: '9990', '5er': '4580', '10er': '2980' },
+        online_standard: { single: '490', '5er': '340', '10er': '290' },
+        online_fach: { single: '890', '5er': '790', '10er': '590' },
+        online_nolimit: { single: '4990' },
+        online_schnupper: { single: '0' },
+        upgrade_1500: { single: '2990' },
+        upgrade_2500: { single: '5990' },
+        wechselanzeige: { single: '290' },
+        ki_translator: { single: '290' },
+        online_verlaengerung: { single: '199' },
+        power_traffic: { single: '990' },
+        ki_power_traffic: { single: '1900' },
+      };
+
+      const premiumPackageDetails = (size) => ({
+          printSection: {
+              heading: `Print + E-Paper (${size})`,
+              items: [
+                  "1 Print-Anzeige",
+                  "2 Erscheinungstermine (samstags) in der Fachzeitung StellenMarkt-direkt",
+                  "inkl. 2x E-Paper (ca. 100tsd. Abos)",
+                  `Anzeigengröße bis gesamt ${size}`,
+                  "Anzeigenannahmeschluss: 7 Tage vorher",
+              ]
+          },
+          onlineSection: {
+              heading: "Online",
+              items: [
+                  "1 Online-Anzeige (wie Printanzeige)",
+                  "im Internet in bis zu 180 Jobbörsen",
+                  "Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de",
+              ]
+          },
+          socialSection: {
+              heading: "Social Media",
+              items: [
+                  "Facebook: über 25.000 organische Einbl. Ihrer Anz. als Beitrag",
+                  "LinkedIn: Ihre Anz. als Beitrag",
+                  "X und Instagram: Ihre Anz. auf X u. Instagram als Beitrag 30 Tage Laufzeit.",
+                  "Anzeigenschaltung: Innerhalb von 2 Werktagen",
+              ]
+          }
+      });
+
+      const PACKAGES = [
+        { id: 'premium_100', title: 'Premium 100 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('100 mm').printSection, premiumPackageDetails('100 mm').onlineSection, premiumPackageDetails('100 mm').socialSection] },
+        { id: 'premium_175', title: 'Premium 175 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('175 mm').printSection, premiumPackageDetails('175 mm').onlineSection, premiumPackageDetails('175 mm').socialSection] },
+        { id: 'premium_250', title: 'Premium 250 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('250 mm').printSection, premiumPackageDetails('250 mm').onlineSection, premiumPackageDetails('250 mm').socialSection] },
+        { id: 'premium_300', title: 'Premium 300 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('300 mm').printSection, premiumPackageDetails('300 mm').onlineSection, premiumPackageDetails('300 mm').socialSection] },
+        { id: 'premium_350', title: 'Premium 350 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('350 mm').printSection, premiumPackageDetails('350 mm').onlineSection, premiumPackageDetails('350 mm').socialSection] },
+        { id: 'premium_500', title: 'Premium 500 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('500 mm').printSection, premiumPackageDetails('500 mm').onlineSection, premiumPackageDetails('500 mm').socialSection] },
+        { id: 'premium_700', title: 'Premium 700 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('700 mm').printSection, premiumPackageDetails('700 mm').onlineSection, premiumPackageDetails('700 mm').socialSection] },
+        { id: 'premium_1000', title: 'Premium 1000 Paket', category: 'Premium Print/Online', featureSections: [premiumPackageDetails('1050 mm').printSection, premiumPackageDetails('1050 mm').onlineSection, premiumPackageDetails('1050 mm').socialSection] },
+        { id: 'premium_1500', title: 'Premium 1500 Paket', category: 'Premium Print/Online', featureSections: [{ ...premiumPackageDetails('1/2 Seite').printSection, items: [...premiumPackageDetails('1/2 Seite').printSection.items.slice(0,3), "Anzeigengröße bis gesamt 1662 mm", ...premiumPackageDetails('1/2 Seite').printSection.items.slice(4)] }, premiumPackageDetails('1/2 Seite').onlineSection, premiumPackageDetails('1/2 Seite').socialSection] },
+        { id: 'premium_2500', title: 'Premium 2500 Paket', category: 'Premium Print/Online', featureSections: [{ ...premiumPackageDetails('1 Seite').printSection, items: [...premiumPackageDetails('1 Seite').printSection.items.slice(0,3), "Anzeigengröße bis gesamt 2484 mm", ...premiumPackageDetails('1 Seite').printSection.items.slice(4)] }, premiumPackageDetails('1 Seite').onlineSection, premiumPackageDetails('1 Seite').socialSection] },
+        { id: 'online_standard', title: 'Standard Paket', category: 'Online Pakete', featureSections: [
+            { heading: 'Online', items: ['1 Online-Anzeige', 'im Internet in bis zu 180 Jobbörsen', 'Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de'] },
+            { heading: 'Social Media', items: ['Facebook: über 25.000 organische Einbl. Ihrer Anz. als Beitrag', 'LinkedIn: Ihre Anz. als Beitrag', 'X und Instagram: Ihre Anzeige auf X und Instagram als Beitrag', '30 Tage Laufzeit. Anzeigenschaltung: Innerhalb von 2 Werktagen'] },
+        ] },
+        { id: 'online_fach', title: 'Fach- u. Führung Paket', category: 'Online Pakete', featureSections: [
+            { heading: 'Online', items: ['1 Online-Anzeige', 'im Internet in bis zu 350 Jobbörsen', 'Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de'] },
+            { heading: 'Social Media-Fach- u. Führung', items: ['Facebook: über 25.000 organische Einbl. Ihrer Anz. als Beitrag', 'LinkedIn: Ihre Anz. als Beitrag', 'X und Instagram: Ihre Anzeige auf X und Instagram als Beitrag', '30 Tage Laufzeit. Anzeigenschaltung: Innerhalb von 2 Werktagen'] },
+        ] },
+        { id: 'online_nolimit', title: 'No-Limit (XML) Paket', category: 'Online Pakete', featureSections: [
+            { heading: 'Online (XML)', items: ['Online-Anzeigen (unbegrenzt)', 'in bis zu 350 Jobbörsen', 'Online-Platzierungen bei google.de und stellenmarkt-direkt.de', 'XML-Schnittstelle', 'Statistiken', '6 Monate Laufzeit (Ihre gesamten Anzeigen)'] },
+            { heading: 'XML-Schnittstelle', items: ['autom. Serverabgleich, 24h Aktualisierung ihrer Stellenanzeigen, Datenübertragung nachts'] },
+            { heading: 'Anzeigenschaltung', items: ['Innerhalb von 2 Werktagen'] },
+        ] },
+        { id: 'online_schnupper', title: 'Schnupper Paket', category: 'Online Pakete', featureSections: [
+            { heading: 'Online', items: ['1 Online-Anzeige', 'inkl. 10 Jobbörsen', '300 Zeichen + Ihr Logo'] },
+            { heading: 'Print', items: ['1 Print-Anzeige', 'Anzeigengröße: 50mm'] },
+            { heading: 'Laufzeit', items: ['30 Tage Laufzeit'] },
+            { heading: 'Anzeigenschaltung', items: ['Innerhalb einer Stunde'] },
+        ] },
+        { id: 'upgrade_1500', title: 'Print 1500+ Paket', category: 'Upgrades & Zusatzpakete', featureSections: [{
+          heading: 'Print-Upgrade 1500+',
+          items: ['Vergrößerung der Anzeige auf Halbseitenformat', 'ursprüngliche Anzeigengröße irrelevant', 'individuelle Anpassung der Anzeige auf Halbseitenformat durch professionelles Satzstudio', 'Anzeigengröße bis gesamt 1662 mm', 'Eyecatcher-Effekt durch halbe Seitengröße']
+        }], features: ['Der Upgrade-1500+ Preis versteht sich zzgl. Premiumpaket'] },
+        { id: 'upgrade_2500', title: 'Print 2500+ Paket', category: 'Upgrades & Zusatzpakete', featureSections: [{
+          heading: 'Print-Upgrade 2500+',
+          items: ['Vergrößerung der Anzeige auf Ganzseitenformat', 'ursprüngliche Anzeigengröße irrelevant', 'individuelle Anpassung der Anzeige auf Ganzseitenformat durch professionelles Satzstudio', 'Anzeigengrörße bis gesamt 2484 mm', 'Eyecatcher-Effekt durch volle Seitengröße']
+        }], features: ['Der Upgrade-2500+ Preis versteht sich zzgl. Premiumpaket'] },
+        { id: 'wechselanzeige', title: 'Wechselanzeige-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
+            { heading: 'Print - Online', items: ['Print-/Onlineschaltung Wechsel der Anzeige bis Laufzeitende der 1. Anzeige', 'im Internet in bis zu 180 Jobbörsen', 'Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de'] },
+            { heading: 'Social Media', items: ['Ihre Anzeige als Beitrag bei: Facebook, Instagram, LinkedIn, Twitter -> X'] },
+        ], features: ['Wechsel nur mgl. bei vorheriger Premium-Paket-Buchung', 'Anzeigenschaltung: Innerhalb von 2 Werktagen'] },
+        { id: 'ki_translator', title: 'KI-Translator-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
+            { heading: 'Online+ KI-Translator', items: ['Print-/Onlineschaltung Übersetzng Ihrer Anzeige mittels Ki', 'alle gängigen Sprachen möglich inkl. KI-opt. Text für ausländische Jobbörsen', 'Sie suchen - Fachkräfte für Deutschland? - Wir verbinden Ihre übersetzte und Ki-optimierte Anzeige mit intern. Jobbörsen und stellenmarkt-direkt.de'] },
+            { heading: 'Social Media', items: ['Ihre Anzeige als Beitrag bei: Facebook, Instagram, LinkedIn, Twitter -> X'] },
+        ], features: ['Übersetzung nur bei vorh. Premium-Paket-Buchung', 'Anzeigenschaltung: Innerhalb von 2 Werktagen'] },
+        { id: 'online_verlaengerung', title: 'Online+ Laufzeit-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [{
+            heading: 'Online+ Laufzeit-Upgrade',
+            items: ['Onlinelaufzeit-Verlängeurng je Monat', '14-tägiger Datum-Refresh der Onlineanzeige', 'ideal für Dauervakanzen', 'Trafficsteigerung', 'mehr Aufmerksamkeit durch Dauerpräsenz', 'monatliche Übermittlung der Klickzahlen']
+        }], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+        { id: 'power_traffic', title: 'Power-Traffic-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
+            { heading: 'Online+ Traffic-Upgrade', items: ['Online Adds - Power-Traffic mit Werbeanzeige', 'im Internet in bis zu 350 Jobbörsen', '100% des Werbebudgets gehen in massive Werbemaßnahmen', 'Premium-Online-Platzierungen bei google.de und stellenmarkt-direkt.de'] },
+            { heading: 'Social Media', items: ['Premium-LinkedIn.com: zielgruppengenaue LinkedIn-Werbeanz. (hohe Reichw.)', 'Power-Traffic-LinkedIn.com: hoch budgetierte Werbeanzeige bei LinkedIn (sehr hohe Resonanz.)', 'Premium-Facebook/Instagram: zielgruppengenaue Facebook/Instagram-Werbeanz. (hohe Reichw.)', 'Power-Traffic-Facebook/Instagram: hoch budgetierte Werbeanzeige bei Facebook/Instagram (sehr hohe Resonanz.)', 'YouTube-Video: Video Ihrer Stellenanzeige (Topplatzierung Google)'] },
+        ], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+        { id: 'ki_power_traffic', title: 'KI-Power-Traffic-Paket', category: 'Upgrades & Zusatzpakete', featureSections: [
+            { heading: 'Online++ KI-Traffic Upgrade', items: ['KI - Power-Traffic mit Werbeanzeige', 'ihre Landingpage (Anzeige) im KI-Funnel', '100% des Werbebudgets gehen in massive Werbemaßnahmen', 'mehr Bewerber-Leads mehr Kontakte über KI-Powertraffic'] },
+            { heading: 'KI-Leads-Kampagnen', items: ['Facebook- u. Google-Leads: hohe Bewerber-/Kontaktquote', 'Power-Traffic-LinkedIn.com: hoch budgetierte Werbeanzeige bei LinkedIn (sehr hohe Resonanz.)', 'Premium-Facebook/Instagram: zielgruppengenaue Facebook/Instagram-Werbeanz. (hohe Reichw.)', 'Power-Traffic-Facebook/Instagram: hoch budgetierte Werbeanzeige bei Facebook/Instagram (sehr hohe Resonanz.)', 'YouTube-Video: Video Ihrer Stellenanzeige (Topplatzierung Google)'] },
+        ], features: ['Preis versteht sich zzgl. Onlinepaket'] },
+      ];
+
+      // Component from components/PrintIcon.tsx
+      const PrintIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd"/>
+        </svg>
+      );
+
+      // Component from components/PdfIcon.tsx
+      const PdfIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2-2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+        </svg>
+      );
+
+      // Component from components/Header.tsx
+      const Header = ({ onPrint, onGeneratePdf, isGeneratingPdf }) => {
+        return (
+          <header className="bg-white shadow-md sticky top-0 z-10 print:hidden">
+            <div className="container mx-auto px-4 sm:px-6 md:px-8 py-3 flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-800">Job Advertisement Agreement</h1>
+              <div className="flex items-center gap-3">
+                  <button onClick={onGeneratePdf} disabled={isGeneratingPdf} className="flex items-center gap-2 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 disabled:bg-gray-400 disabled:cursor-wait">
+                      <PdfIcon />
+                      {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
+                  </button>
+                  <button onClick={onPrint} className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200">
+                      <PrintIcon />
+                      Print
+                  </button>
+              </div>
+            </div>
+          </header>
+        );
+      };
+
+      // Component from components/Input.tsx
+      const Input = ({ label, id, addonAfter, ...props }) => {
+        return (
+          <div>
+            {label && (
+              <label htmlFor={id} className="block text-sm font-medium text-gray-600 mb-1">
+                {label}
+              </label>
+            )}
+            {addonAfter ? (
+              <div className="flex">
+                <input id={id} {...props} className="w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" />
+                <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  {addonAfter}
+                </span>
+              </div>
+            ) : (
+              <input id={id} {...props} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" />
+            )}
+          </div>
+        );
+      };
+      
+      // Component from components/ContactSection.tsx
+      const ContactSection = ({ title, section, data, onChange }) => {
+        const handleChange = (field) => (e) => {
+          onChange(section, field, e.target.value);
+        };
+
+        return (
+          <div className="bg-white p-4 rounded-lg shadow space-y-3">
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">{title}</h3>
+              {section === 'kundenInfo' && (
+                  <Input label="Anrede (z.B. Sehr geehrte Frau Schmidt)" id={`${section}-anrede`} value={data.anrede || ''} onChange={handleChange('anrede')} />
+              )}
+            <Input label="Firma" id={`${section}-firma`} value={data.firma} onChange={handleChange('firma')} />
+            <Input label="Ansprechpartner" id={`${section}-ansprechpartner`} value={data.ansprechpartner} onChange={handleChange('ansprechpartner')} />
+            <Input label="Straße, PLZ, Ort" id={`${section}-strasse`} value={data.strasse} onChange={handleChange('strasse')} />
+            <Input label="Tel." id={`${section}-tel`} value={data.tel} onChange={handleChange('tel')} />
+            <Input label="Fax" id={`${section}-fax`} value={data.fax} onChange={handleChange('fax')} />
+            <Input label="E-Mail" id={`${section}-email`} type="email" value={data.email} onChange={handleChange('email')} />
+          </div>
+        );
+      };
+
+      // Component from components/PackageSelector.tsx
+      const PackageSelector = ({ state, onInfoChange, onPackageChange, onAnnahmeschlussChange, onRateCardChange }) => {
+        const tierLabels = {
+          single: 'Einzelpreis',
+          '5er': '5er Paket (pro Anz.)',
+          '10er': '10er Paket (pro Anz.)',
+        };
+
+        const PackageCard = ({ pkg, details, rateCard, onChange, onRateChange }) => {
+            const rates = rateCard[pkg.id];
+            
+            return (
+                <div className={`bg-white p-4 rounded-lg shadow`}>
+                    <div className="flex items-start">
+                        <input type="checkbox" id={`pkg-${pkg.id}`} checked={details.selected} onChange={(e) => onChange(pkg.id, 'selected', e.target.checked)} className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1" />
+                        <div className="ml-3 flex-1">
+                            <label htmlFor={`pkg-${pkg.id}`} className="font-bold text-gray-800 text-lg cursor-pointer">{pkg.title}</label>
+                            <div className="text-sm text-gray-600 mt-2 space-y-2">
+                                {pkg.featureSections?.map((section, i) => (
+                                    <div key={i}>
+                                        <p className="font-semibold text-gray-700">{section.heading}</p>
+                                        <ul className="list-disc list-inside pl-2 text-gray-500">
+                                            {section.items.map((item, j) => <li key={j}>{item}</li>)}
+                                        </ul>
+                                    </div>
+                                ))}
+                                 {pkg.features?.map((f, i) => <p key={i} className="text-xs italic text-gray-500 mt-2">- {f}</p>)}
+                            </div>
+                        </div>
+                    </div>
+                    {details.selected && rates && (
+                         <div className="mt-4 pl-8 border-t pt-4">
+                            <h4 className="text-sm font-semibold mb-2 text-gray-600">Preisoptionen auswählen & bearbeiten</h4>
+                            <div className="space-y-3">
+                                {Object.entries(rates).map(([tier, price]) => (
+                                    <div key={tier} className="grid grid-cols-3 items-center gap-4">
+                                        <div className="col-span-2 flex items-center">
+                                            <input type="radio" id={`${pkg.id}-${tier}`} name={`${pkg.id}-tier`} checked={details.pricingTier === tier} onChange={() => onChange(pkg.id, 'pricingTier', tier)} className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
+                                            <label htmlFor={`${pkg.id}-${tier}`} className="ml-2 text-sm text-gray-700 font-medium">
+                                                {tierLabels[tier] || tier}
+                                            </label>
+                                        </div>
+                                        <Input label="" id={`${pkg.id}-price-${tier}`} value={price || ''} onChange={(e) => onRateChange(pkg.id, tier, e.target.value)} addonAfter="€" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        const categories = PACKAGES.reduce((acc, pkg) => {
+          (acc[pkg.category] = acc[pkg.category] || []).push(pkg);
+          return acc;
+        }, {});
+
+        return (
+          <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-4 rounded-lg shadow">
+               <Input label="Datum" id="info-datum" value={state.angebotInfo.datum} onChange={(e) => onInfoChange('datum', e.target.value)} />
+               <Input label="Angebots-Nr." id="info-angebotsNr" value={state.angebotInfo.angebotsNr} onChange={(e) => onInfoChange('angebotsNr', e.target.value)} />
+               <div className="md:col-span-2">
+                  <label htmlFor="info-annahmeschluss" className="block text-sm font-medium text-gray-600 mb-1">Annahmeschluss / Custom Entry</label>
+                  <textarea id="info-annahmeschluss" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Enter submission deadline or other custom text to display above the total price. E.g., Fr., 08.08.2025 - 12.00 Uhr" value={state.annahmeschluss} onChange={(e) => onAnnahmeschlussChange(e.target.value)} />
+               </div>
+            </div>
+            {Object.entries(categories).map(([category, pkgs]) => (
+              <div key={category}>
+                  <h3 className="text-xl font-bold text-gray-700 mb-4 pb-2 border-b-2">{category}</h3>
+                  <div className="space-y-4">
+                      {pkgs.map((pkg) => (
+                          <PackageCard key={pkg.id} pkg={pkg} details={state.packages[pkg.id]} rateCard={state.rateCard} onChange={onPackageChange} onRateChange={onRateCardChange} />
+                      ))}
+                  </div>
+              </div>
+            ))}
+          </div>
+        );
+      };
+
+      // Component from components/AgreementPreview.tsx
+      const AgreementPreview = ({ state, totals }) => {
+        const { anbieterInfo, kundenInfo, angebotInfo, packages, annahmeschluss } = state;
+        const selectedPackages = PACKAGES.filter(pkg => packages[pkg.id]?.selected);
+
+        const tierLabels = {
+            single: 'Einzelpreis', '5er': '5er Paket', '10er': '10er Paket',
+        };
+        
+        const Logo = () => (
+          <div className="text-right">
+            <span className="text-4xl font-bold text-gray-800 tracking-tight" style={{fontFamily: 'Arial, sans-serif'}}>Stellen</span>
+            <span className="text-4xl font-bold text-red-600 tracking-tight ml-1" style={{fontFamily: 'Arial, sans-serif'}}>Markt-direkt</span>
+          </div>
+        );
+
+        const CheckIcon = () => (
+            <svg className="h-4 w-4 text-black inline-block mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+        );
+
+        const CheckedBoxIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-black inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm6.293 6.293a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L10 11.414l-1.293 1.293a1 1 0 01-1.414-1.414l2-2z" clipRule="evenodd" />
+            </svg>
+        );
+        
+        const formatValue = (value, placeholder = '__________') => {
+            return value && value.trim() !== '' ? <span className="font-bold">{value}</span> : placeholder;
+        };
+
+        const formatCurrency = (value) => {
+          const mainPart = new Intl.NumberFormat('de-DE').format(Math.trunc(value));
+          return `${mainPart},- €`;
+        }
+
+        const salutation = kundenInfo.anrede || `Sehr geehrte/r ${kundenInfo.ansprechpartner || 'Kunde'}`;
+
+        return (
+          <div className="p-10 bg-white font-serif text-sm text-black" id="agreement-preview">
+            <header className="grid grid-cols-2 gap-8 mb-4">
+              <div>
+                  <p>{kundenInfo.firma}</p>
+                  <p>{kundenInfo.ansprechpartner}</p>
+                  <p>{kundenInfo.strasse}</p>
+                  <p className="mt-4">Betr.: Stellenanzeige</p>
+              </div>
+              <div className="text-right text-xs">
+                  <p className="font-bold">{anbieterInfo.firma}</p>
+                  <p>{anbieterInfo.ansprechpartner}</p>
+                  <p>{anbieterInfo.strasse}</p>
+                  <div className="mt-2 inline-block text-left">
+                      <table>
+                          <tbody>
+                              <tr><td className="pr-2">Tel.:</td><td>{anbieterInfo.tel}</td></tr>
+                              <tr><td className="pr-2">Mobil:</td><td>{anbieterInfo.fax}</td></tr>
+                              <tr><td className="pr-2">E-Mail:</td><td>{anbieterInfo.email}</td></tr>
+                          </tbody>
+                      </table>
+                  </div>
+                   <p className="mt-4 text-right">Datum: {angebotInfo.datum}</p>
+              </div>
+            </header>
+            
+            <div className="mt-8 mb-6 text-right"><Logo /></div>
+
+            <section className="mb-8">
+              <p className="mb-2">{salutation},</p>
+              <p>wunschgemäß übermittle ich Ihnen folgendes Angebot:</p>
+            </section>
+
+            <main>
+              <h1 className="text-2xl font-bold">Mitarbeitersuche 4.0 – so finden Sie Ihr Personal heute!</h1>
+              <h2 className="text-lg font-bold mt-1">Alles aus einer Hand - Print, Online und soziale Medien!!!</h2>
+              <p className="text-xs mt-2">Stellenanzeigen nur in der Zeitung, nur Online, nur in einer Jobbörse, nur über Soziale Medien... eingleisig zu fahren, war noch nie eine gute Idee.</p>
+              {selectedPackages.length > 0 && (
+                  <div className="my-6">
+                      {selectedPackages.map(pkg => {
+                          const details = packages[pkg.id];
+                          const tierKey = details.pricingTier || 'single';
+                          const tierText = tierLabels[tierKey] ? `(${tierLabels[tierKey]})` : '';
+                          return (
+                              <div key={pkg.id} className="mb-4 last:mb-0">
+                                   <h3 className="font-bold text-base mb-2 flex items-center border-t border-gray-300 pt-3">
+                                      <CheckedBoxIcon />
+                                      IHRE ANZEIGE: {pkg.title} {tierText}
+                                   </h3>
+                                   <div className="pl-7 space-y-2 text-xs">
+                                      {pkg.featureSections?.map((section, i) => (
+                                          <div key={i}>
+                                              <p className="font-bold underline">{section.heading}</p>
+                                              {section.items.map((item, j) => (
+                                                  <div key={j} className="flex items-start">
+                                                      <CheckIcon />
+                                                      <p>{item}</p>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      ))}
+                                      {pkg.features?.map((feature, i) => (
+                                          <div key={i} className="flex items-start text-gray-600 italic">
+                                              <CheckIcon />
+                                              <p>{feature}</p>
+                                          </div>
+                                      ))}
+                                   </div>
+                              </div>
+                          )
+                      })}
+                  </div>
+              )}
+              <div className="flex justify-between items-start border-y-2 border-dashed border-gray-400 py-2">
+                  <div className="font-bold pr-4" style={{ whiteSpace: 'pre-wrap' }}>
+                      ANNAHMESCHLUSSTERMIN: {formatValue(annahmeschluss, 'Fr., TT.MM.JJJJ - HH:MM Uhr')}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-lg">Paketpreis Print/Online: {formatCurrency(totals.subTotal)}</p>
+                      <p className="text-xs">(Der Gesamtpreis beinhaltet alle Leistungen; zuzüglich MwSt.)</p>
+                  </div>
+              </div>
+            </main>
+
+            <section className="mt-8 text-xs">
+                <p>Für Rückfragen bin ich für Sie direkt unter der o.a. Telefon-, Faxnummer oder per E-Mail erreichbar.</p>
+                <p>Ihre Rechnung und den Seitenbeleg erhalten Sie per E-Mail.</p>
+                <p className="mt-4">Mit freundlichen Grüßen</p>
+            </section>
+
+            <footer className="mt-16 pt-4 border-t-2 border-black">
+              <h2 className="text-base font-bold">AUFTRAGSBESTÄTIGUNG</h2>
+              <p className="text-xs mt-1 mb-8">(bitte per E-Mail bestätigen oder unterschrieben zurücksenden)</p>
+              <div className="grid grid-cols-2 gap-12 text-xs">
+                  <div className="pt-8">
+                      <div className="border-b border-black"></div>
+                      <p className="mt-1">Unterschrift (Absender / Anbieter)</p>
+                      <div className="mt-4 space-y-1">
+                          <p><strong>Name:</strong> {anbieterInfo.ansprechpartner || '____________________'}</p>
+                          <p><strong>Firma:</strong> {anbieterInfo.firma || '____________________'}</p>
+                          <p><strong>Datum:</strong> ____________________</p>
+                      </div>
+                  </div>
+                  <div className="pt-8">
+                      <div className="border-b border-black"></div>
+                      <p className="mt-1">Unterschrift (Empfänger / Kunde)</p>
+                       <div className="mt-4 space-y-1">
+                          <p><strong>Name:</strong> {kundenInfo.ansprechpartner || '____________________'}</p>
+                          <p><strong>Firma:</strong> {kundenInfo.firma || '____________________'}</p>
+                          <p><strong>Datum:</strong> ____________________</p>
+                      </div>
+                  </div>
+              </div>
+            </footer>
+          </div>
+        );
+      };
+
+      // Main App Component from App.tsx
+      const App = () => {
+        const { useState, useMemo, useCallback } = React;
+        const { jsPDF } = window.jspdf;
+
+        const initialContact = {
+          firma: '', ansprechpartner: '', strasse: '', tel: '', fax: '', email: '', anrede: ''
+        };
+
+        const initialPackages = PACKAGES.reduce((acc, pkg) => {
+          acc[pkg.id] = { selected: false, price: '', pricingTier: null };
+          return acc;
+        }, {});
+
+        const [state, setState] = useState({
+          anbieterInfo: { ...initialContact },
+          kundenInfo: { ...initialContact },
+          angebotInfo: { datum: new Date().toLocaleDateString('de-DE'), angebotsNr: '' },
+          annahmeschluss: '',
+          packages: initialPackages,
+          rateCard: DEFAULT_RATE_CARD,
+        });
+        const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+        const handleContactChange = useCallback((section, field, value) => {
+          setState(prev => ({ ...prev, [section]: { ...prev[section], [field]: value } }));
+        }, []);
+
+        const handleInfoChange = useCallback((field, value) => {
+          setState(prev => ({ ...prev, angebotInfo: { ...prev.angebotInfo, [field]: value } }));
+        }, []);
+
+        const handleAnnahmeschlussChange = useCallback((value) => {
+            setState(prev => ({...prev, annahmeschluss: value}))
+        }, []);
+
+        const handleRateCardChange = useCallback((packageId, tier, value) => {
+          setState(prev => {
+            const newRateCard = { ...prev.rateCard };
+            const packageRates = { ...newRateCard[packageId] };
+            packageRates[tier] = value;
+            newRateCard[packageId] = packageRates;
+            const newPackages = { ...prev.packages };
+            const currentPackage = newPackages[packageId];
+            if (currentPackage?.selected && currentPackage?.pricingTier === tier) {
+              newPackages[packageId] = { ...currentPackage, price: value };
+            }
+            return { ...prev, rateCard: newRateCard, packages: newPackages };
+          });
+        }, []);
+
+        const handlePackageChange = useCallback((id, field, value) => {
+          setState(prev => {
+              const newPackages = { ...prev.packages };
+              const pkg = { ...newPackages[id] };
+              const rate = prev.rateCard[id];
+              if (field === 'selected') {
+                  pkg.selected = !!value;
+                  if (pkg.selected) {
+                      pkg.pricingTier = 'single';
+                      pkg.price = rate?.single || '0';
+                  } else {
+                      pkg.price = '';
+                      pkg.pricingTier = null;
+                  }
+              } else if (field === 'pricingTier') {
+                  const newTier = value;
+                  pkg.pricingTier = newTier;
+                  pkg.price = rate?.[newTier] ?? '0';
+              }
+              newPackages[id] = pkg;
+              return { ...prev, packages: newPackages };
+          });
+        }, []);
+        
+        const subTotal = useMemo(() => {
+          return Object.values(state.packages).reduce((sum, pkg) => {
+            if (pkg.selected && pkg.price) {
+              const price = parseFloat(pkg.price.replace(',', '.'));
+              return sum + (isNaN(price) ? 0 : price);
+            }
+            return sum;
+          }, 0);
+        }, [state.packages]);
+
+        const vat = useMemo(() => subTotal * 0.19, [subTotal]);
+        const total = useMemo(() => subTotal + vat, [subTotal, vat]);
+
+        const handlePrint = () => { window.print(); };
+
+        const handleGeneratePdf = useCallback(async () => {
+          setIsGeneratingPdf(true);
+          const element = document.getElementById('agreement-preview');
+          if (!element) {
+              setIsGeneratingPdf(false);
+              console.error("Preview element not found");
+              return;
+          }
+          try {
+              const canvas = await html2canvas(element, { scale: 1.5, useCORS: true });
+              const imgData = canvas.toDataURL('image/jpeg', 0.95);
+              const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+              const pdfWidth = pdf.internal.pageSize.getWidth();
+              const pdfHeight = pdf.internal.pageSize.getHeight();
+              const canvasWidth = canvas.width;
+              const canvasHeight = canvas.height;
+              const ratio = canvasWidth / pdfWidth;
+              const imgHeight = canvasHeight / ratio;
+              let heightLeft = imgHeight;
+              let position = 0;
+              pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+              heightLeft -= pdfHeight;
+              while (heightLeft > 0) {
+                  position = heightLeft - imgHeight;
+                  pdf.addPage();
+                  pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+                  heightLeft -= pdfHeight;
+              }
+              const safeFilenamePart = (str) => str.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'na';
+              const recipientName = safeFilenamePart(state.kundenInfo.firma);
+              const senderName = safeFilenamePart(state.anbieterInfo.firma);
+              const date = state.angebotInfo.datum.replace(/\./g, '-');
+              const filename = `${recipientName}_${date}_${senderName}.pdf`;
+              pdf.save(filename);
+          } catch (error) {
+              console.error("Error generating PDF:", error);
+          } finally {
+              setIsGeneratingPdf(false);
+          }
+        }, [state.kundenInfo.firma, state.anbieterInfo.firma, state.angebotInfo.datum]);
+
+        return (
+          <div className="min-h-screen font-sans text-gray-800 bg-gray-200">
+            <Header onPrint={handlePrint} onGeneratePdf={handleGeneratePdf} isGeneratingPdf={isGeneratingPdf} />
+            <main className="p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 print:block">
+              <div className="lg:pr-4 print:hidden">
+                <h2 className="text-2xl font-bold text-gray-700 mb-6 border-b pb-2">Agreement Details</h2>
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <ContactSection title="Absender / Anbieter" data={state.anbieterInfo} section="anbieterInfo" onChange={handleContactChange} />
+                    <ContactSection title="Empfänger / Kunde" data={state.kundenInfo} section="kundenInfo" onChange={handleContactChange} />
+                  </div>
+                  <PackageSelector state={state} onInfoChange={handleInfoChange} onPackageChange={handlePackageChange} onAnnahmeschlussChange={handleAnnahmeschlussChange} onRateCardChange={handleRateCardChange}/>
+                </div>
+              </div>
+              <div className="lg:fixed lg:right-8 lg:top-[100px] lg:w-[calc(50%-4rem)] lg:h-[calc(100vh-120px)] print:shadow-none print:fixed print:top-0 print:left-0 print:w-full print:h-full print:overflow-visible">
+                 <div className="bg-white rounded-lg shadow-2xl w-full h-full overflow-y-auto">
+                      <AgreementPreview state={state} totals={{ subTotal, vat, total }} />
+                 </div>
+              </div>
+            </main>
+          </div>
+        );
+      };
+
+      // Entry point from index.tsx
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+      }
+      
+      // --- END OF COMBINED CODE ---
+    </script>
+  </body>
+</html>
