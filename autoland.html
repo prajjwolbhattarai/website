@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoland Recruiting Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'autoland-red': '#E2001A',
+              'dark-primary': '#1E1E1E',
+              'dark-secondary': '#2B2B2B',
+              'light-gray': '#F4F4F4',
+              'status-green': '#3CB371',
+              'status-yellow': '#FFC107',
+              'status-red': '#E74C3C',
+              'status-blue': '#3498DB',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            boxShadow: {
+                'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+            },
+            borderRadius: {
+              'xl': '12px',
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dropzone": "https://aistudiocdn.com/react-dropzone@^14.3.8"
+  }
+}
+</script>
+</head>
+  <body class="bg-light-gray dark:bg-dark-primary">
+    <div id="root"></div>
+    <script type="text/babel" data-type="module">
+// Bundled Application Code
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import ReactDOM from 'react-dom/client';
+import { useDropzone } from 'react-dropzone';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
+
+// --- From types.ts ---
+const ApplicantStatus = {
+  New: 'New',
+  PreQualified: 'Pre-Qualified',
+  Interview: 'Interview',
+  Hired: 'Hired',
+  Rejected: 'Rejected',
+};
+
+// --- From utils/formatters.ts ---
+const formatDateTime = (date) => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes} ${day}/${month}/${year}`;
+};
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// --- From components/icons/ ---
+const ArrowLeftIcon = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+);
+const ArrowUpIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+  </svg>
+);
+const AutolandLogo = (props) => {
+  const logoUrl = 'https://autoland.de/themes/Frontend/Autoland/frontend/_public/src/img/autoland-ag-logo-rot.svg';
+  return <img src={logoUrl} alt="Autoland Logo" {...props} />;
+};
+const BriefcaseIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.075c0 1.313-.964 2.505-2.263 2.741-1.3.236-2.64.108-3.922-.363a2.25 2.25 0 01-1.564-2.074v-5.462a2.25 2.25 0 011.564-2.074c1.282-.47 2.622-.6 3.922-.363 1.3.236 2.263 1.428 2.263 2.741zm-8.25-10.283V3.75c0-1.036-.84-1.875-1.875-1.875h-3.75c-1.036 0-1.875.84-1.875 1.875v.083c0 .991.75 1.823 1.737 1.855 1.144.036 2.062-.862 2.062-1.942v-.083zm0 2.25v4.075c0 1.313-.964 2.505-2.263 2.741-1.3.236-2.64.108-3.922-.363a2.25 2.25 0 01-1.564-2.074v-5.462a2.25 2.25 0 011.564-2.074c1.282-.47 2.622-.6 3.922-.363 1.3.236 2.263 1.428 2.263 2.741z" />
+  </svg>
+);
+const DownloadIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+  </svg>
+);
+const FilterIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+  </svg>
+);
+const MoonIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+  </svg>
+);
+const PlusIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+const SearchIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+  </svg>
+);
+const StarIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+  </svg>
+);
+const SunIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+  </svg>
+);
+const UploadIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+  </svg>
+);
+const UsersIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-4.663M12 12a3 3 0 100-6 3 3 0 000 6z" />
+  </svg>
+);
+
+// --- From data/mockData.ts ---
+const today = new Date();
+const getDate = (daysAgo) => new Date(today.getTime() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+const jobStatuses = ['Open', 'Closed', 'On Hold'];
+
+const newJobData = [
+  { title: 'Architekt (m/w/d) Hochbau in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'Construction' },
+  { title: 'Bauleiter / Bauingenieur (m/w/d) in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'Construction' },
+  { title: 'Bauleiter / Bauingenieur Tiefbau (m/w/d) in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'Construction' },
+  { title: 'Berufskraftfahrer / LKW Fahrer (m/w/d) im Nahverkehr', locations: 'Autoland-Zentrale; Berlin2', department: 'Logistics' },
+  { title: 'Einkäufer für Automobile (m/w/d) gern Quereinsteiger', locations: 'Berlin2; Erfurt; Freiberg; Hamburg; Naumburg', department: 'Procurement' },
+  { title: 'Einkäufer im Außendienst (m/w/d) auch Quereinsteiger in Autoland-Zentrale', locations: 'Autoland-Zentrale; Berlin2', department: 'Procurement' },
+  { title: 'Elektriker / Elektroinstallateur (m/w/d) Autoland Bauabteilung', locations: 'Autoland-Zentrale; Berlin2', department: 'Construction' },
+  { title: 'Empfangs- und Servicemitarbeiter (m/w/d) im Hotel in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'Service' },
+  { title: 'Fachadministrator und Projektleiter Rechnungswesen-Software (m/w/d) in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'IT' },
+  { title: 'Fahrer / Fahrzeugüberführer (m/w/d) Teilzeit in Autoland-Zentrale', locations: 'Autoland-Zentrale', department: 'Logistics' },
+  { title: 'Fahrzeugpfleger / Fahrzeugaufbereiter (m/w/d) Quereinsteiger', locations: 'Brehna; Halle; Hamburg; Riesa', department: 'Service' },
+  { title: 'Finanzbuchhalter (m/w/d)', locations: 'Autoland-Zentrale; Rostock', department: 'Finance' },
+];
+
+let jobIdCounter = 101;
+const mockJobPositions = [];
+newJobData.forEach(jobTemplate => {
+  const locations = jobTemplate.locations.split('; ');
+  locations.forEach(location => {
+    mockJobPositions.push({
+      id: jobIdCounter++,
+      title: jobTemplate.title,
+      location: location.trim(),
+      department: jobTemplate.department,
+      status: jobStatuses[Math.floor(Math.random() * jobStatuses.length)],
+      openDate: getDate(Math.floor(Math.random() * 90) + 5),
+      description: `Dies ist eine Stellenbeschreibung für ${jobTemplate.title} am Standort ${location}. Wir suchen motivierte Mitarbeiter, die unser Team verstärken.`,
+      requirements: ['Abgeschlossene Berufsausbildung oder vergleichbare Qualifikation', 'Teamfähigkeit und Zuverlässigkeit', 'Gute Deutschkenntnisse'],
+    });
+  });
+});
+
+const initialApplicants = [
+  { id: 1, name: 'Elena Rodriguez', email: 'elena.r@example.com', phone: '555-0101', applicationDate: getDate(5), jobPosition: 'Finanzbuchhalter (m/w/d)', location: 'Autoland-Zentrale', source: 'LinkedIn', status: ApplicantStatus.Interview, hrRating: 5, comment: 'Starkes Portfolio, ausgezeichnete technische Fähigkeiten.', notes: 'Nachverfolgung bezüglich der Designsystemaufgabe.', interviewDate: getDate(-2), documents: [{ id: 101, name: 'Elena_Rodriguez_CV.pdf', type: 'CV', uploadDate: getDate(5), url: '#' }], },
+  { id: 2, name: 'Ben Carter', email: 'ben.c@example.com', phone: '555-0102', applicationDate: getDate(12), jobPosition: 'Einkäufer für Automobile (m/w/d) gern Quereinsteiger', location: 'Hamburg', source: 'Indeed', status: ApplicantStatus.PreQualified, hrRating: 4, comment: 'Gutes Auge fürs Detail.', notes: 'Muss die Erfahrung im Mobile-First-Design näher erläutern.', documents: [{ id: 102, name: 'BenCarter_Portfolio.pdf', type: 'Portfolio', uploadDate: getDate(12), url: '#' }], },
+  { id: 3, name: 'Aisha Khan', email: 'aisha.k@example.com', phone: '555-0103', applicationDate: getDate(25), jobPosition: 'Berufskraftfahrer / LKW Fahrer (m/w/d) im Nahverkehr', location: 'Berlin2', source: 'Company Website', status: ApplicantStatus.Hired, hrRating: 5, comment: 'Außergewöhnlicher Kandidat, Angebot angenommen.', notes: 'Das Onboarding beginnt nächsten Monat.', documents: [], },
+  { id: 4, name: 'Markus Weber', email: 'markus.w@example.com', phone: '555-0104', applicationDate: getDate(40), jobPosition: 'Bauleiter / Bauingenieur (m/w/d) in Autoland-Zentrale', location: 'Autoland-Zentrale', source: 'Referral', status: ApplicantStatus.Hired, hrRating: 4, comment: 'Passt super ins Team.', notes: '', documents: [{ id: 104, name: 'Resume_MW.pdf', type: 'CV', uploadDate: getDate(40), url: '#' }], },
+  { id: 5, name: 'Sophia Brandt', email: 'sophia.b@example.com', phone: '555-0105', applicationDate: getDate(2), jobPosition: 'Fahrzeugpfleger / Fahrzeugaufbereiter (m/w/d) Quereinsteiger', location: 'Halle', source: 'Indeed', status: ApplicantStatus.New, hrRating: 0, comment: '', notes: '', documents: [], },
+  { id: 6, name: 'Liam Schmidt', email: 'liam.s@example.com', phone: '555-0106', applicationDate: getDate(8), jobPosition: 'Einkäufer für Automobile (m/w/d) gern Quereinsteiger', location: 'Erfurt', source: 'LinkedIn', status: ApplicantStatus.Rejected, hrRating: 2, comment: 'Nicht genügend Erfahrung im B2B-Bereich.', notes: '', documents: [], },
+  { id: 7, name: 'Chloé Dubois', email: 'chloe.d@example.com', phone: '555-0107', applicationDate: getDate(50), jobPosition: 'Elektriker / Elektroinstallateur (m/w/d) Autoland Bauabteilung', location: 'Autoland-Zentrale', source: 'Company Website', status: ApplicantStatus.Interview, hrRating: 4, comment: 'Abschlussgespräch terminiert.', notes: '', documents: [], },
+];
+
+const firstNames = ["Lukas", "Mia", "Finn", "Hannah", "Leon", "Emma", "Jonas", "Sofia", "Felix", "Anna", "Maximilian", "Marie", "Paul", "Lena", "Luca", "Laura", "Elias", "Julia", "David", "Lea"];
+const lastNames = ["Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann", "Schäfer", "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schröder", "Neumann", "Schwarz", "Zimmermann"];
+const sources = ["LinkedIn", "Indeed", "Company Website", "Referral", "Glassdoor", "StepStone"];
+const generateRandomApplicant = (id) => {
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const name = `${firstName} ${lastName}`;
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
+  
+  const job = mockJobPositions[Math.floor(Math.random() * mockJobPositions.length)];
+  const statusValues = Object.values(ApplicantStatus);
+  const status = statusValues[Math.floor(Math.random() * statusValues.length)];
+  const applicationDateDaysAgo = Math.floor(Math.random() * 90) + 1;
+  let hrRating = 0;
+  if (status !== ApplicantStatus.New) { hrRating = Math.floor(Math.random() * 5) + 1; }
+  let interviewDate = undefined;
+  if ([ApplicantStatus.Interview, ApplicantStatus.Hired].includes(status)) { interviewDate = getDate(applicationDateDaysAgo - Math.floor(Math.random() * 7) + 2); }
+
+  return { id, name, email, phone: `555-01${id.toString().padStart(2, '0')}`, applicationDate: getDate(applicationDateDaysAgo), jobPosition: job.title, location: job.location, source: sources[Math.floor(Math.random() * sources.length)], status, hrRating, comment: status === ApplicantStatus.Rejected ? 'Fehlende spezifische Fähigkeit.' : '', notes: '', documents: [], interviewDate };
+};
+const additionalApplicants = [];
+for (let i = 8; i <= 57; i++) { additionalApplicants.push(generateRandomApplicant(i)); }
+const mockApplicants = [...initialApplicants, ...additionalApplicants];
+
+const mockCreatives = [
+    { id: 1, name: 'LinkedIn_Dev_Campaign', impressions: 15000, clicks: 350, cost: 700, ctr: 2.33, cvr: 5.1, cpl: 38.89, applicants: 18 },
+    { id: 2, name: 'Indeed_Sales_Q3', impressions: 22000, clicks: 880, cost: 650, ctr: 4.0, cvr: 3.4, cpl: 21.67, applicants: 30 },
+    { id: 3, name: 'Facebook_Brand_Awareness', impressions: 55000, clicks: 1200, cost: 950, ctr: 2.18, cvr: 1.5, cpl: 52.78, applicants: 18 },
+    { id: 4, name: 'Google_Search_Design', impressions: 8000, clicks: 400, cost: 1200, ctr: 5.0, cvr: 6.0, cpl: 50.00, applicants: 24 },
+];
+
+// --- From hooks/useRecruitmentData.ts ---
+const useRecruitmentData = () => {
+  const [applicants, setApplicants] = useState(mockApplicants);
+  const [jobPositions, setJobPositions] = useState(mockJobPositions);
+  const [creatives] = useState(mockCreatives);
+  const [timeRange, setTimeRange] = useState('all');
+  const [jobFilter, setJobFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+
+  const dateFilteredApplicants = useMemo(() => {
+    if (timeRange === 'all') return applicants;
+    let startDate; let endDate;
+    if (typeof timeRange === 'object') {
+        startDate = new Date(timeRange.start);
+        endDate = new Date(timeRange.end);
+        endDate.setHours(23, 59, 59, 999);
+    } else {
+        const days = timeRange === '7d' ? 7 : 30;
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date();
+    }
+    return applicants.filter(a => { const appDate = new Date(a.applicationDate); return appDate >= startDate && appDate <= endDate; });
+  }, [applicants, timeRange]);
+
+  const filteredApplicants = useMemo(() => {
+    return dateFilteredApplicants.filter(applicant => {
+        const matchesJob = jobFilter === 'all' || applicant.jobPosition === jobFilter;
+        const matchesLocation = locationFilter === 'all' || applicant.location === locationFilter;
+        return matchesJob && matchesLocation;
+    });
+  }, [dateFilteredApplicants, jobFilter, locationFilter]);
+
+  const kpis = useMemo(() => {
+    const totalApplicants = filteredApplicants.length;
+    const qualifiedApplicants = filteredApplicants.filter(a => [ApplicantStatus.PreQualified, ApplicantStatus.Interview, ApplicantStatus.Hired].includes(a.status)).length;
+    const totalHires = filteredApplicants.filter(a => a.status === ApplicantStatus.Hired).length;
+    const totalAdSpend = creatives.reduce((sum, c) => sum + c.cost, 0);
+    const cpa = totalApplicants > 0 ? totalAdSpend / totalApplicants : 0;
+    const cph = totalHires > 0 ? totalAdSpend / totalHires : 0;
+    const hiredApplicants = filteredApplicants.filter(a => a.status === 'Hired' && a.interviewDate);
+    const avgTimeToHire = hiredApplicants.length > 0
+        ? hiredApplicants.reduce((sum, a) => {
+             const applicationDate = new Date(a.applicationDate);
+             const hiredDate = new Date(a.interviewDate);
+             const diffTime = Math.abs(hiredDate.getTime() - applicationDate.getTime());
+             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+             return sum + diffDays;
+        }, 0) / hiredApplicants.length
+        : 0;
+    return { totalApplicants, qualifiedApplicants, totalHires, totalAdSpend, cpa, cph, averageTimeToHire: avgTimeToHire };
+  }, [filteredApplicants, creatives]);
+
+  const funnelData = useMemo(() => {
+     const impressions = creatives.reduce((sum, c) => sum + c.impressions, 0);
+     const clicks = creatives.reduce((sum, c) => sum + c.clicks, 0);
+     const totalApplicants = filteredApplicants.length;
+     const qualified = filteredApplicants.filter(a => [ApplicantStatus.PreQualified, ApplicantStatus.Interview, ApplicantStatus.Hired].includes(a.status)).length;
+     const interview = filteredApplicants.filter(a => [ApplicantStatus.Interview, ApplicantStatus.Hired].includes(a.status)).length;
+     const hired = kpis.totalHires;
+     return [
+        { name: 'Impressions', value: impressions, conversion: impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(1)) : 0 },
+        { name: 'Clicks', value: clicks, conversion: clicks > 0 ? parseFloat(((totalApplicants / clicks) * 100).toFixed(1)) : 0 },
+        { name: 'Applications', value: totalApplicants, conversion: totalApplicants > 0 ? parseFloat(((qualified/totalApplicants) * 100).toFixed(1)) : 0},
+        { name: 'Qualified', value: qualified, conversion: qualified > 0 ? parseFloat(((interview/qualified) * 100).toFixed(1)) : 0 },
+        { name: 'Interview', value: interview, conversion: interview > 0 ? parseFloat(((hired/interview) * 100).toFixed(1)) : 0},
+        { name: 'Hired', value: hired, conversion: 0},
+     ];
+  }, [filteredApplicants, kpis.totalHires, creatives]);
+
+  const trendData = useMemo(() => {
+    const data = {};
+    const days = timeRange === '7d' ? 7 : (timeRange === '30d' ? 30 : 90);
+    for (let i = days -1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toLocaleDateString('en-CA');
+        data[key] = { Applications: 0, CPL: [] };
+    }
+    filteredApplicants.forEach(app => {
+        const key = new Date(app.applicationDate).toLocaleDateString('en-CA');
+        if (data[key]) {
+            data[key].Applications += 1;
+            data[key].CPL.push(creatives[Math.floor(Math.random() * creatives.length)].cpl);
+        }
+    });
+    return Object.entries(data).map(([date, values]) => ({ name: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), Applications: values.Applications, CPL: values.CPL.length > 0 ? (values.CPL.reduce((a,b) => a+b, 0) / values.CPL.length) : 0 }));
+  }, [filteredApplicants, creatives, timeRange]);
+
+  const locationPerformance = useMemo(() => {
+    const perf = {};
+    filteredApplicants.forEach(app => {
+        if (!perf[app.location]) { perf[app.location] = { applicants: 0, qualified: 0, hires: 0, cpl: [] }; }
+        perf[app.location].applicants++;
+        if ([ApplicantStatus.PreQualified, ApplicantStatus.Interview, ApplicantStatus.Hired].includes(app.status)) perf[app.location].qualified++;
+        if (app.status === ApplicantStatus.Hired) perf[app.location].hires++;
+        perf[app.location].cpl.push(creatives[Math.floor(Math.random() * creatives.length)].cpl);
+    });
+    return Object.entries(perf).map(([location, data]) => ({ location, ...data, cpl: data.cpl.length > 0 ? (data.cpl.reduce((a, b) => a + b, 0) / data.cpl.length) : 0, })).sort((a,b) => b.applicants - a.applicants);
+  }, [filteredApplicants, creatives]);
+
+  const sourcePerformance = useMemo(() => {
+    const perf = {};
+    filteredApplicants.forEach(app => {
+        if (!perf[app.source]) { perf[app.source] = { applicants: 0, hires: 0 }; }
+        perf[app.source].applicants++;
+        if (app.status === ApplicantStatus.Hired) perf[app.source].hires++;
+    });
+    return Object.entries(perf).map(([name, data]) => ({ name, ...data })).sort((a,b) => b.applicants - a.applicants);
+  }, [filteredApplicants]);
+  
+  const allJobPositions = useMemo(() => [...new Set(mockJobPositions.map(j => j.title))].sort(), []);
+  const allLocations = useMemo(() => [...new Set(mockJobPositions.map(j => j.location))].sort(), []);
+  const allDepartments = useMemo(() => [...new Set(jobPositions.map(j => j.department))].sort(), [jobPositions]);
+  
+  const updateApplicantStatus = useCallback((id, status) => { setApplicants(prev => prev.map(a => a.id === id ? {...a, status} : a)); }, []);
+  const updateApplicantRating = useCallback((id, hrRating) => { setApplicants(prev => prev.map(a => a.id === id ? {...a, hrRating} : a)); }, []);
+  const updateApplicantComment = useCallback((id, comment) => { setApplicants(prev => prev.map(a => a.id === id ? {...a, comment} : a)); }, []);
+  const updateApplicantField = useCallback((id, field, value) => { setApplicants(prev => prev.map(a => a.id === id ? {...a, [field]: value } : a)); }, []);
+  const addJobPosition = useCallback((newJob) => { const jobWithId = { ...newJob, id: Date.now() }; setJobPositions(prev => [jobWithId, ...prev]); }, []);
+  const updateJobPosition = useCallback((id, field, value) => { setJobPositions(prev => prev.map(j => j.id === id ? {...j, [field]: value} : j)); }, []);
+
+  return { kpis, funnelData, trendData, locationPerformance, sourcePerformance, creatives, applicants, jobPositions, allJobPositions, allLocations, allDepartments, setTimeRange, setJobFilter, setLocationFilter, filters: { timeRange, jobFilter, locationFilter }, updateApplicantStatus, updateApplicantRating, updateApplicantComment, updateApplicantField, addJobPosition, updateJobPosition };
+};
+
+// --- From components/ ---
+const KpiCard = ({ title, value, performance = 'neutral' }) => {
+  const performanceColors = { good: 'bg-status-green', average: 'bg-status-yellow', bad: 'bg-status-red', neutral: 'bg-gray-400' };
+  return (
+    <div className="bg-white dark:bg-dark-secondary p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center relative">
+      {performance !== 'neutral' && ( <div className={`absolute top-3 right-3 h-2.5 w-2.5 rounded-full ${performanceColors[performance]}`} title={`Performance: ${performance}`}></div> )}
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap truncate">{title}</p>
+      <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+    </div>
+  );
+};
+
+const FunnelChart = ({ data }) => {
+  const maxValue = data.length > 0 ? data[0].value : 1;
+  const colors = [ '#E2001A', '#C70017', '#AD0014', '#930011', '#79000E', '#5F000B' ];
+  return (
+    <div className="space-y-1 flex flex-col items-center">
+      {data.map((stage, index) => {
+        const widthPercentage = Math.max(20, (stage.value / maxValue) * 100);
+        return (
+          <div key={stage.name} className="w-full flex flex-col items-center">
+            <div
+              className="h-12 flex items-center justify-center transition-all duration-300 ease-out relative text-center"
+              style={{ width: `${widthPercentage}%`, backgroundColor: colors[index % colors.length], clipPath: index === data.length - 1 ? 'none' : 'polygon(0 0, 100% 0, 90% 100%, 10% 100%)', borderRadius: index === data.length - 1 ? '4px' : '0' }} >
+                <div className="text-white px-2">
+                    <p className="font-bold text-sm">{stage.value.toLocaleString()}</p>
+                    <p className="text-xs opacity-80">{stage.name}</p>
+                </div>
+            </div>
+             {index < data.length - 1 && ( <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"> <span>▼</span> {stage.conversion}% Conversion </div> )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const TrendChart = ({ data, metric }) => {
+  return (
+    <div className="h-80 w-full">
+      <ResponsiveContainer>
+        <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="rgba(128, 128, 128, 0.5)"/>
+          <YAxis tick={{ fontSize: 12 }} stroke="rgba(128, 128, 128, 0.5)"/>
+          <Tooltip contentStyle={{ backgroundColor: 'rgba(43, 43, 43, 0.8)', border: 'none', borderRadius: '8px', color: 'white' }} />
+          <Legend />
+          <Line type="monotone" dataKey={metric} stroke="#E2001A" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 8 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+const DataTable = ({ title, columns, data }) => {
+  return (
+    <div className="bg-white dark:bg-dark-secondary p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700 h-full">
+      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{title}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-light-gray dark:bg-dark-primary dark:text-gray-400 border-b-2 border-gray-200 dark:border-gray-700">
+            <tr>{columns.map(col => ( <th key={col.accessor} scope="col" className="px-4 py-3 font-semibold">{col.header}</th> ))}</tr>
+          </thead>
+          <tbody>
+            {data.length > 0 ? data.map((row, rowIndex) => (
+              <tr key={rowIndex} className="bg-white dark:bg-dark-secondary border-b dark:border-gray-700 hover:bg-light-gray dark:hover:bg-dark-primary/50">
+                {columns.map(col => ( <td key={col.accessor} className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">{col.format ? col.format(row[col.accessor]) : row[col.accessor]}</td> ))}
+              </tr>
+            )) : ( <tr><td colSpan={columns.length} className="text-center py-10 text-gray-500">No data available.</td></tr> )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const SourcePerformanceChart = ({ data }) => {
+    return (
+        <div className="bg-white dark:bg-dark-secondary p-4 sm:p-6 rounded-xl shadow-soft h-full">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Applicant Source Performance</h3>
+            <div className="h-80 w-full">
+                <ResponsiveContainer>
+                    <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(128, 128, 128, 0.2)" />
+                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="rgba(128, 128, 128, 0.5)"/>
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} stroke="rgba(128, 128, 128, 0.5)"/>
+                        <Tooltip contentStyle={{ backgroundColor: 'rgba(43, 43, 43, 0.8)', border: 'none', borderRadius: '8px', color: 'white' }} />
+                        <Legend />
+                        <Bar dataKey="applicants" name="Applicants" fill="#8884d8" />
+                        <Bar dataKey="hires" name="Hires" fill="#E2001A" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    );
+};
+
+const DocumentUpload = ({ onUpload }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const onDrop = useCallback((acceptedFiles) => {
+    setIsUploading(true);
+    setTimeout(() => {
+      acceptedFiles.forEach(file => {
+        const newDoc = { id: Date.now() + Math.random(), name: file.name, type: 'Other', uploadDate: new Date().toISOString().split('T')[0], url: URL.createObjectURL(file) };
+        onUpload(newDoc);
+      });
+      setIsUploading(false);
+    }, 1000);
+  }, [onUpload]);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: true });
+  return (
+    <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDragActive ? 'border-autoland-red bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-autoland-red'}`}>
+      <input {...getInputProps()} />
+      {isUploading ? ( <div> <div className="w-8 h-8 mx-auto border-4 border-dashed rounded-full animate-spin border-autoland-red"></div> <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Uploading...</p> </div> ) : ( <div className="flex flex-col items-center"> <UploadIcon className="h-10 w-10 text-gray-400 mb-2" /> <p className="text-sm text-gray-600 dark:text-gray-300"> <span className="font-semibold text-autoland-red">Click to upload</span> or drag and drop </p> <p className="text-xs text-gray-500 dark:text-gray-400">PDF, DOCX, PNG, JPG (max. 10MB)</p> </div> )}
+    </div>
+  );
+};
+
+const ApplicantTable = ({ applicants, onSelectApplicant, onUpdateStatus, onUpdateRating, onUpdateComment }) => {
+  const statusColors = { [ApplicantStatus.New]: 'bg-status-green/10 text-status-green', [ApplicantStatus.PreQualified]: 'bg-status-yellow/10 text-status-yellow', [ApplicantStatus.Interview]: 'bg-status-blue/10 text-status-blue', [ApplicantStatus.Hired]: 'bg-autoland-red/10 text-autoland-red', [ApplicantStatus.Rejected]: 'bg-status-red/10 text-status-red' };
+  const StarRating = ({ applicantId, rating, onUpdateRating }) => ( <div className="flex"> {[1, 2, 3, 4, 5].map(star => ( <button key={star} onClick={(e) => { e.stopPropagation(); onUpdateRating(applicantId, star); }}> <StarIcon className={`h-5 w-5 cursor-pointer ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`} /> </button> ))} </div> );
+  const CommentCell = ({ applicantId, comment, onUpdateComment }) => {
+      const [currentComment, setCurrentComment] = useState(comment);
+      const handleBlur = () => { if (currentComment !== comment) { onUpdateComment(applicantId, currentComment); } }
+      return ( <input type="text" value={currentComment} onChange={(e) => setCurrentComment(e.target.value)} onBlur={handleBlur} onClick={(e) => e.stopPropagation()} className="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-autoland-red rounded px-1 -mx-1" placeholder="Add comment..." /> )
+  }
+  return (
+    <div className="bg-white dark:bg-dark-secondary border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
+      <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead className="text-xs text-gray-700 uppercase bg-light-gray dark:bg-dark-primary dark:text-gray-400 border-b-2 border-gray-200 dark:border-gray-700">
+          <tr>
+            <th scope="col" className="px-6 py-3">Applicant</th> <th scope="col" className="px-6 py-3">Job Position</th> <th scope="col" className="px-6 py-3">Location</th> <th scope="col" className="px-6 py-3">Source</th> <th scope="col" className="px-6 py-3">Date</th> <th scope="col" className="px-6 py-3">Status</th> <th scope="col" className="px-6 py-3">Rating</th> <th scope="col" className="px-6 py-3">Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {applicants.map(applicant => (
+            <tr key={applicant.id} onClick={() => onSelectApplicant(applicant.id)} className="bg-white dark:bg-dark-secondary border-b dark:border-gray-700 hover:bg-light-gray dark:hover:bg-dark-primary/50 cursor-pointer">
+              <td className="px-6 py-4 font-medium text-gray-900 dark:text-white"> <div className="font-bold">{applicant.name}</div> <div className="text-xs text-gray-500">{applicant.email}</div> </td>
+              <td className="px-6 py-4">{applicant.jobPosition}</td> <td className="px-6 py-4">{applicant.location}</td> <td className="px-6 py-4">{applicant.source}</td> <td className="px-6 py-4">{formatDate(applicant.applicationDate)}</td>
+              <td className="px-6 py-4"> <select value={applicant.status} onChange={(e) => { e.stopPropagation(); onUpdateStatus(applicant.id, e.target.value) }} onClick={(e) => e.stopPropagation()} className={`text-xs font-semibold p-1.5 rounded-md border-none appearance-none focus:outline-none focus:ring-2 focus:ring-autoland-red ${statusColors[applicant.status]}`}> {Object.values(ApplicantStatus).map(s => ( <option key={s} value={s}>{s}</option> ))} </select> </td>
+              <td className="px-6 py-4"><StarRating applicantId={applicant.id} rating={applicant.hrRating} onUpdateRating={onUpdateRating} /></td>
+              <td className="px-6 py-4"><CommentCell applicantId={applicant.id} comment={applicant.comment} onUpdateComment={onUpdateComment} /></td>
+            </tr>
+          ))}
+           {applicants.length === 0 && ( <tr><td colSpan={8} className="text-center py-10 text-gray-500">No applicants found.</td></tr> )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const JobPositionCard = ({ job, applicantCount, hiresCount, onSelectJob }) => {
+  const statusClasses = { Open: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', Closed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', 'On Hold': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' };
+  return (
+    <div onClick={onSelectJob} className="bg-white dark:bg-dark-secondary rounded-xl shadow-soft p-6 space-y-4 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
+      <div className="flex justify-between items-start">
+        <div><h3 className="font-bold text-lg text-gray-900 dark:text-white">{job.title}</h3><p className="text-sm text-gray-500 dark:text-gray-400">{job.location} - {job.department}</p></div>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusClasses[job.status]}`}>{job.status}</span>
+      </div>
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2"><UsersIcon className="h-5 w-5" /><span>{applicantCount} Applicants</span></div>
+        <div className="flex items-center gap-2"><BriefcaseIcon className="h-5 w-5" /><span>{hiresCount} Hires</span></div>
+      </div>
+      <p className="text-xs text-gray-400 dark:text-gray-500 text-right">Opened: {formatDate(job.openDate)}</p>
+    </div>
+  );
+};
+
+const AddJobModal = ({ onClose, onAddJob, allLocations, allDepartments }) => {
+  const [title, setTitle] = useState('');
+  const [location, setLocation] = useState(allLocations[0] || '');
+  const [department, setDepartment] = useState(allDepartments[0] || '');
+  const [description, setDescription] = useState('');
+  const [newLocation, setNewLocation] = useState('');
+  const [newDepartment, setNewDepartment] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const finalLocation = location === 'other' ? newLocation : location;
+    const finalDepartment = department === 'other' ? newDepartment : department;
+    if (!title || !finalLocation || !finalDepartment) return;
+    onAddJob({ title, location: finalLocation, department: finalDepartment, description, status: 'Open', openDate: new Date().toISOString(), requirements: [] });
+  };
+  const inputClasses = "w-full bg-light-gray dark:bg-dark-primary border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-autoland-red";
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+      <div className="bg-white dark:bg-dark-secondary rounded-xl shadow-lg p-8 w-full max-w-lg space-y-6 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Job Position</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div><label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label><input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClasses} required /></div>
+          <div><label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label><select id="location" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClasses} required>{allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}<option value="other">Other...</option></select>{location === 'other' && (<input type="text" placeholder="Enter new location" value={newLocation} onChange={e => setNewLocation(e.target.value)} className={`${inputClasses} mt-2`} required />)}</div>
+          <div><label htmlFor="department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label><select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClasses} required>{allDepartments.map(dep => <option key={dep} value={dep}>{dep}</option>)}<option value="other">Other...</option></select>{department === 'other' && (<input type="text" placeholder="Enter new department" value={newDepartment} onChange={e => setNewDepartment(e.target.value)} className={`${inputClasses} mt-2`} required />)}</div>
+          <div><label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label><textarea id="description" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClasses}></textarea></div>
+          <div className="flex justify-end gap-4 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold rounded-md text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button><button type="submit" className="px-4 py-2 text-sm font-semibold rounded-md text-white bg-autoland-red hover:bg-red-700">Add Job</button></div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const Header = ({ currentPage, onNavigate, theme, onToggleTheme }) => {
+  const navItems = [ { id: 'dashboard', label: 'Dashboard' }, { id: 'applicants', label: 'Applicants' }, { id: 'jobs', label: 'Jobs' } ];
+  const getNavButtonClass = (page) => { const isActive = currentPage === page; return `relative px-3 py-2 text-sm font-semibold rounded-md transition-colors ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`; }
+  return (
+    <header className="bg-white dark:bg-dark-secondary border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-8"><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('dashboard'); }} aria-label="Back to Dashboard"><AutolandLogo className="h-8 w-auto" /></a><nav className="hidden md:flex items-center gap-2">{navItems.map(item => ( <button key={item.id} onClick={() => onNavigate(item.id)} className={getNavButtonClass(item.id)}> {item.label} {currentPage === item.id && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-0.5 bg-autoland-red rounded-full"></span>} </button> ))}</nav></div>
+          <div className="flex items-center"><button onClick={onToggleTheme} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle theme">{theme === 'light' ? <MoonIcon className="h-6 w-6" /> : <SunIcon className="h-6 w-6" />}</button></div>
+        </div>
+         <nav className="md:hidden flex items-center justify-around gap-2 border-t border-gray-200 dark:border-gray-700 -mx-4 px-4 pt-2">{navItems.map(item => (<button key={item.id} onClick={() => onNavigate(item.id)} className={`${getNavButtonClass(item.id)} flex-1`}>{item.label}{currentPage === item.id && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-autoland-red rounded-full"></span>}</button>))}</nav>
+      </div>
+    </header>
+  );
+};
+
+// --- From pages/ ---
+const ApplicantDetailPage = ({ applicant, onUpdateField, onBack, allJobPositions, allLocations }) => {
+  const [documents, setDocuments] = useState(applicant.documents);
+  const statusColors = { [ApplicantStatus.New]: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', [ApplicantStatus.PreQualified]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', [ApplicantStatus.Interview]: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', [ApplicantStatus.Hired]: 'bg-green-500 text-white', [ApplicantStatus.Rejected]: 'bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-300' };
+  const StarRating = ({ rating, onRatingChange }) => ( <div className="flex"> {[1, 2, 3, 4, 5].map(star => ( <button key={star} onClick={() => onRatingChange(star)}> <StarIcon className={`h-6 w-6 cursor-pointer ${star <= rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} /> </button> ))} </div> );
+  const EditableField = ({ label, id, children }) => ( <div> <label htmlFor={id} className="block text-gray-500 dark:text-gray-400 text-xs font-bold mb-1">{label}</label> {children} </div> );
+
+  const handleFieldChange = (field, value) => { onUpdateField(applicant.id, field, value); };
+  const handleUploadDocument = (newDocument) => { const updatedDocuments = [...documents, newDocument]; setDocuments(updatedDocuments); handleFieldChange('documents', updatedDocuments); };
+  const handleRemoveDocument = (docId) => { const updatedDocuments = documents.filter(d => d.id !== docId); setDocuments(updatedDocuments); handleFieldChange('documents', updatedDocuments); };
+  
+  const getInterviewDateValue = () => { if (!applicant.interviewDate) return ''; try { const date = new Date(applicant.interviewDate); if (isNaN(date.getTime())) return ''; return date.toISOString().slice(0, 16); } catch (e) { return ''; } };
+  const inputClasses = "w-full bg-light-gray dark:bg-dark-primary border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-autoland-red";
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center gap-4">
+        <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-dark-secondary transition-colors"><ArrowLeftIcon className="h-6 w-6" /></button>
+        <div><input type="text" value={applicant.name} onChange={(e) => handleFieldChange('name', e.target.value)} className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent focus:outline-none focus:ring-2 focus:ring-autoland-red rounded-lg px-2 -mx-2 w-full" aria-label="Applicant Name" /><p className="text-sm text-gray-500 dark:text-gray-400 px-2">Applied for {applicant.jobPosition} on {formatDate(applicant.applicationDate)}</p></div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Applicant Details</h3><div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"><EditableField label="Email" id="email"><input id="email" type="email" value={applicant.email} onChange={(e) => handleFieldChange('email', e.target.value)} className={inputClasses} /></EditableField><EditableField label="Phone" id="phone"><input id="phone" type="tel" value={applicant.phone} onChange={(e) => handleFieldChange('phone', e.target.value)} className={inputClasses} /></EditableField><EditableField label="Location" id="location"><select id="location" value={applicant.location} onChange={(e) => handleFieldChange('location', e.target.value)} className={inputClasses}>{allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}</select></EditableField><EditableField label="Source" id="source"><input id="source" type="text" value={applicant.source} onChange={(e) => handleFieldChange('source', e.target.value)} className={inputClasses} /></EditableField><EditableField label="Job Position" id="jobPosition"><select id="jobPosition" value={applicant.jobPosition} onChange={(e) => handleFieldChange('jobPosition', e.target.value)} className={inputClasses}>{allJobPositions.map(pos => <option key={pos} value={pos}>{pos}</option>)}</select></EditableField><EditableField label="Interview Date" id="interviewDate"><input type="datetime-local" id="interviewDate" value={getInterviewDateValue()} onChange={(e) => handleFieldChange('interviewDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)} className={inputClasses} /></EditableField></div></div>
+          <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Notes</h3><textarea value={applicant.notes} onChange={(e) => handleFieldChange('notes', e.target.value)} rows={6} className="w-full bg-light-gray dark:bg-dark-primary border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-autoland-red" placeholder="Add notes about the applicant..." /></div>
+          <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Documents</h3><div className="space-y-4">{documents.map(doc => (<div key={doc.id} className="flex items-center justify-between p-3 bg-light-gray dark:bg-dark-primary rounded-lg"><div><a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-autoland-red hover:underline">{doc.name}</a><p className="text-xs text-gray-500 dark:text-gray-400">Type: {doc.type} | Uploaded: {formatDate(doc.uploadDate)}</p></div><button onClick={() => handleRemoveDocument(doc.id)} className="text-gray-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div>))}<DocumentUpload onUpload={handleUploadDocument} /></div></div>
+        </div>
+        <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Status</h3><select value={applicant.status} onChange={(e) => handleFieldChange('status', e.target.value)} className={`w-full text-sm font-semibold p-3 rounded-lg border-none appearance-none focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-dark-secondary focus:ring-autoland-red ${statusColors[applicant.status]}`}>{Object.values(ApplicantStatus).map(s => ( <option key={s} value={s} className="bg-white dark:bg-dark-secondary text-gray-800 dark:text-gray-200 font-medium">{s}</option> ))}</select></div>
+            <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">HR Rating</h3><StarRating rating={applicant.hrRating} onRatingChange={(r) => handleFieldChange('hrRating', r)} /></div>
+            <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">HR Comment</h3><textarea value={applicant.comment} onChange={(e) => handleFieldChange('comment', e.target.value)} rows={4} className="w-full bg-light-gray dark:bg-dark-primary border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-autoland-red" placeholder="Add an HR comment..." /></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const JobDetailPage = ({ job, applicants, onUpdateJobField, onSelectApplicant, onBack, updateApplicantStatus, updateApplicantRating, updateApplicantComment, }) => {
+  const statusClasses = { Open: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', Closed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', 'On Hold': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' };
+  const handleFieldChange = (field, value) => { onUpdateJobField(job.id, field, value); };
+  const inputClasses = "w-full bg-light-gray dark:bg-dark-primary border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-autoland-red";
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4"><button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-dark-secondary transition-colors"><ArrowLeftIcon className="h-6 w-6" /></button><div><h1 className="text-3xl font-bold text-gray-900 dark:text-white">{job.title}</h1><p className="text-sm text-gray-500 dark:text-gray-400">{job.location} - {job.department} | Opened: {formatDate(job.openDate)}</p></div></div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Job Description</h3><textarea value={job.description} onChange={(e) => handleFieldChange('description', e.target.value)} rows={6} className={inputClasses} placeholder="Enter job description..." /></div>
+          <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Requirements</h3><textarea value={job.requirements.join('\n')} onChange={(e) => handleFieldChange('requirements', e.target.value.split('\n'))} rows={5} className={inputClasses} placeholder="Enter one requirement per line..." /></div>
+        </div>
+        <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-4">Status</h3><select value={job.status} onChange={(e) => handleFieldChange('status', e.target.value)} className={`w-full text-sm font-semibold p-3 rounded-lg border-none appearance-none focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-dark-secondary focus:ring-autoland-red ${statusClasses[job.status]}`}>{Object.keys(statusClasses).map(s => ( <option key={s} value={s} className="bg-white dark:bg-dark-secondary text-gray-800 dark:text-gray-200 font-medium">{s}</option> ))}</select></div>
+            <div className="bg-white dark:bg-dark-secondary p-6 rounded-xl shadow-soft"><h3 className="text-lg font-semibold mb-2">Statistics</h3><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Total Applicants:</span><span className="font-semibold">{applicants.length}</span></div><div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Hires:</span><span className="font-semibold">{applicants.filter(a => a.status === 'Hired').length}</span></div></div></div>
+        </div>
+      </div>
+       <div><h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Applicants for this Position</h2><div className="sm:hidden text-xs text-center text-gray-500 dark:text-gray-400 mb-2">&larr; Scroll for more &rarr;</div><ApplicantTable applicants={applicants} onSelectApplicant={onSelectApplicant} onUpdateStatus={updateApplicantStatus} onUpdateRating={updateApplicantRating} onUpdateComment={updateApplicantComment} /></div>
+    </div>
+  );
+};
+
+const PerformanceDashboard = ({ data }) => {
+  const { kpis, funnelData, trendData, locationPerformance, creatives, sourcePerformance, setTimeRange, filters, allJobPositions, allLocations, setJobFilter, setLocationFilter } = data;
+  const [activeTrend, setActiveTrend] = useState('Applications');
+  const [timeRangeOption, setTimeRangeOption] = useState(typeof filters.timeRange === 'string' ? filters.timeRange : 'custom');
+  const [customStartDate, setCustomStartDate] = useState(() => typeof filters.timeRange === 'object' ? filters.timeRange.start : new Date().toISOString().split('T')[0]);
+  const [customEndDate, setCustomEndDate] = useState(() => typeof filters.timeRange === 'object' ? filters.timeRange.end : new Date().toISOString().split('T')[0]);
+  useEffect(() => { if (timeRangeOption === 'custom') { if(customStartDate && customEndDate && new Date(customStartDate) <= new Date(customEndDate)) { setTimeRange({ start: customStartDate, end: customEndDate }); } } else { setTimeRange(timeRangeOption); } }, [timeRangeOption, customStartDate, customEndDate, setTimeRange]);
+  
+  const locationColumns = [ { header: 'Location', accessor: 'location' }, { header: 'Applicants', accessor: 'applicants' }, { header: 'Qualified', accessor: 'qualified' }, { header: 'Hires', accessor: 'hires' }, { header: 'Avg. CPL', accessor: 'cpl', format: (value) => `$${value.toFixed(2)}` }, ];
+  const creativeColumns = [ { header: 'Ad Name', accessor: 'name' }, { header: 'Impressions', accessor: 'impressions', format: (v) => v.toLocaleString() }, { header: 'CTR (%)', accessor: 'ctr', format: (v) => v.toFixed(2) }, { header: 'CPL', accessor: 'cpl', format: (v) => `$${v.toFixed(2)}` }, { header: 'Applicants', accessor: 'applicants' }, ];
+  const timeRangeOptions = [ { value: '7d', label: 'Last 7 Days' }, { value: '30d', label: 'Last 30 Days' }, { value: 'all', label: 'All Time' }, { value: 'custom', label: 'Custom' } ];
+  const getCphPerformance = (cph) => { if (cph === 0) return 'neutral'; if (cph < 300) return 'good'; if (cph < 800) return 'average'; return 'bad'; };
+  const getTimeToHirePerformance = (days) => { if (days === 0) return 'neutral'; if (days < 20) return 'good'; if (days < 40) return 'average'; return 'bad'; };
+  const inputBaseClasses = "w-full border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-dark-secondary focus:outline-none focus:ring-2 focus:ring-autoland-red px-3 py-2";
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-secondary p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <select value={filters.jobFilter} onChange={e => setJobFilter(e.target.value)} className={inputBaseClasses}><option value="all">All Job Positions</option>{allJobPositions.map(j => <option key={j} value={j}>{j}</option>)}</select>
+              <select value={filters.locationFilter} onChange={e => setLocationFilter(e.target.value)} className={inputBaseClasses}><option value="all">All Locations</option>{allLocations.map(l => <option key={l} value={l}>{l}</option>)}</select>
+              <select value={timeRangeOption} onChange={e => setTimeRangeOption(e.target.value)} className={inputBaseClasses}>{timeRangeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>
+               {timeRangeOption === 'custom' && ( <div className="flex items-center gap-2 md:col-span-2 lg:col-span-1"> <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className={inputBaseClasses}/><span className="text-gray-500">-</span><input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className={inputBaseClasses}/> </div> )}
+          </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"><KpiCard title="Total Applicants" value={kpis.totalApplicants.toLocaleString()} /><KpiCard title="Qualified" value={kpis.qualifiedApplicants.toLocaleString()} /><KpiCard title="Hired" value={kpis.totalHires.toLocaleString()} /><KpiCard title="Avg. Time to Hire" value={`${kpis.averageTimeToHire.toFixed(1)} days`} performance={getTimeToHirePerformance(kpis.averageTimeToHire)} /><KpiCard title="Cost per Applicant" value={`$${kpis.cpa.toFixed(2)}`} /><KpiCard title="Cost per Hire" value={`$${kpis.cph.toFixed(2)}`} performance={getCphPerformance(kpis.cph)}/></div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 bg-white dark:bg-dark-secondary p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Hiring Funnel</h3>{funnelData.some(d => d.value > 0) ? <FunnelChart data={funnelData} /> : <p className="text-center text-gray-500 py-10">No funnel data for this period.</p>}</div>
+        <div className="lg:col-span-2 bg-white dark:bg-dark-secondary p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700"><div className="flex justify-between items-center mb-4"><h3 className="text-lg font-semibold text-gray-900 dark:text-white">Applicant Trends</h3><div className="flex gap-2 text-sm"><button onClick={() => setActiveTrend('Applications')} className={`px-2 py-1 rounded ${activeTrend === 'Applications' ? 'bg-autoland-red text-white' : 'bg-light-gray dark:bg-dark-primary'}`}>Applications</button><button onClick={() => setActiveTrend('CPL')} className={`px-2 py-1 rounded ${activeTrend === 'CPL' ? 'bg-autoland-red text-white' : 'bg-light-gray dark:bg-dark-primary'}`}>Avg. CPL</button></div></div>{trendData.length > 0 ? <TrendChart data={trendData} metric={activeTrend} /> : <p className="text-center text-gray-500 py-10">No trend data for this period.</p>}</div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6"><div className="lg:col-span-3"><DataTable title="Location Performance" columns={locationColumns} data={locationPerformance} /></div><div className="lg:col-span-2"><SourcePerformanceChart data={sourcePerformance} /></div></div>
+      <div className="lg:col-span-5"><DataTable title="Creative Performance" columns={creativeColumns} data={creatives} /></div>
+      <div className="bg-white dark:bg-dark-secondary p-4 rounded-xl border border-gray-200 dark:border-gray-700 mt-6"><div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center"><div><p className="text-sm text-gray-500">Total Ad Spend</p><p className="text-xl font-bold">${kpis.totalAdSpend.toLocaleString()}</p></div><div><p className="text-sm text-gray-500">Total Hires</p><p className="text-xl font-bold">{kpis.totalHires.toLocaleString()}</p></div><div><p className="text-sm text-gray-500">Overall Cost Per Hire</p><p className="text-xl font-bold">${kpis.cph.toFixed(2)}</p></div><div><p className="text-sm text-gray-500">Last Updated</p><p className="text-xl font-bold">{new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p></div></div></div>
+    </div>
+  );
+};
+
+const ApplicantManagement = ({ applicants, onSelectApplicant, updateApplicantStatus, updateApplicantRating, updateApplicantComment, allJobPositions, allLocations }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [jobFilter, setJobFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+  const filteredApplicants = useMemo(() => {
+    return applicants.filter(applicant => {
+      const matchesSearch = applicant.name.toLowerCase().includes(searchTerm.toLowerCase()) || applicant.email.toLowerCase().includes(searchTerm.toLowerCase()) || applicant.jobPosition.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || applicant.status === statusFilter;
+      const matchesJob = jobFilter === 'all' || applicant.jobPosition === jobFilter;
+      const matchesLocation = locationFilter === 'all' || applicant.location === locationFilter;
+      return matchesSearch && matchesStatus && matchesJob && matchesLocation;
+    });
+  }, [applicants, searchTerm, statusFilter, jobFilter, locationFilter]);
+  const inputBaseClasses = "w-full border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-dark-secondary focus:outline-none focus:ring-2 focus:ring-autoland-red";
+  return (
+    <div className="space-y-6">
+      <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">Applicant Management</h1><p className="text-sm text-gray-500 dark:text-gray-400">View, filter, and manage all candidate applications.</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative lg:col-span-1"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon className="h-5 w-5 text-gray-400" /></div><input type="text" placeholder="Search by name, email, job..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2`} /></div>
+        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><FilterIcon className="h-5 w-5 text-gray-400" /></div><select value={jobFilter} onChange={e => setJobFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Job Positions</option>{allJobPositions.map(job => ( <option key={job} value={job}>{job}</option> ))}</select></div>
+        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><FilterIcon className="h-5 w-5 text-gray-400" /></div><select value={locationFilter} onChange={e => setLocationFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Locations</option>{allLocations.map(loc => ( <option key={loc} value={loc}>{loc}</option> ))}</select></div>
+        <div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><FilterIcon className="h-5 w-5 text-gray-400" /></div><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Statuses</option>{Object.values(ApplicantStatus).map(status => ( <option key={status} value={status}>{status}</option> ))}</select></div>
+      </div>
+      <ApplicantTable applicants={filteredApplicants} onSelectApplicant={onSelectApplicant} onUpdateStatus={updateApplicantStatus} onUpdateRating={updateApplicantRating} onUpdateComment={updateApplicantComment} />
+    </div>
+  );
+};
+
+const JobPositionsDashboard = ({ jobPositions, applicants, onSelectJob, onAddJob, allLocations, allDepartments }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+
+  const filteredJobs = jobPositions.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
+    const matchesLocation = locationFilter === 'all' || job.location === locationFilter;
+    const matchesDepartment = departmentFilter === 'all' || job.department === departmentFilter;
+    return matchesSearch && matchesStatus && matchesLocation && matchesDepartment;
+  });
+  const inputBaseClasses = "w-full border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-dark-secondary focus:outline-none focus:ring-2 focus:ring-autoland-red";
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">Job Positions</h1><p className="text-sm text-gray-500 dark:text-gray-400">Manage open roles and track applicant pipelines.</p></div>
+        <button onClick={() => setIsModalOpen(true)} className="flex items-center justify-center gap-2 bg-autoland-red text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"><PlusIcon className="h-5 w-5" />Add Job</button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative lg:col-span-1"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon className="h-5 w-5 text-gray-400" /></div><input type="text" placeholder="Search by title..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2`} /></div>
+          <div className="relative"><FilterIcon className="h-5 w-5 text-gray-400 absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none"/><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Statuses</option>{jobStatuses.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+          <div className="relative"><FilterIcon className="h-5 w-5 text-gray-400 absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none"/><select value={locationFilter} onChange={e => setLocationFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Locations</option>{allLocations.map(l => <option key={l} value={l}>{l}</option>)}</select></div>
+          <div className="relative"><FilterIcon className="h-5 w-5 text-gray-400 absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none"/><select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)} className={`${inputBaseClasses} pl-10 pr-4 py-2 appearance-none`}><option value="all">All Departments</option>{allDepartments.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredJobs.length > 0 ? filteredJobs.map(job => { const jobApplicants = applicants.filter(a => a.jobPosition === job.title); return (<JobPositionCard key={job.id} job={job} applicantCount={jobApplicants.length} hiresCount={jobApplicants.filter(a => a.status === 'Hired').length} onSelectJob={() => onSelectJob(job.id)} />); }) : ( <p className="md:col-span-2 lg:col-span-3 text-center text-gray-500 py-10">No job positions match the current filters.</p> )}
+      </div>
+      {isModalOpen && (<AddJobModal onClose={() => setIsModalOpen(false)} onAddJob={(newJob) => { onAddJob(newJob); setIsModalOpen(false); }} allLocations={allLocations} allDepartments={allDepartments} />)}
+    </div>
+  );
+};
+
+// --- From App.tsx ---
+const App = () => {
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [selectedApplicantId, setSelectedApplicantId] = useState(null);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [theme, setTheme] = useState('light');
+  const recruitmentData = useRecruitmentData();
+
+  useEffect(() => { if (theme === 'dark') { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } }, [theme]);
+  const handleToggleTheme = () => { setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light'); };
+  const handleNavigate = (page) => { setCurrentPage(page); setSelectedApplicantId(null); setSelectedJobId(null); };
+  const handleSelectApplicant = (id) => { setSelectedApplicantId(id); setCurrentPage('applicants'); };
+  const handleSelectJob = (id) => { setSelectedJobId(id); setCurrentPage('jobs'); };
+  const handleBack = () => { setSelectedApplicantId(null); setSelectedJobId(null); }
+
+  const selectedApplicant = recruitmentData.applicants.find(a => a.id === selectedApplicantId);
+  const selectedJob = recruitmentData.jobPositions.find(j => j.id === selectedJobId);
+
+  const renderContent = () => {
+    if (selectedApplicant) { return <ApplicantDetailPage applicant={selectedApplicant} onUpdateField={recruitmentData.updateApplicantField} onBack={handleBack} allJobPositions={recruitmentData.allJobPositions} allLocations={recruitmentData.allLocations} />; }
+    if (selectedJob) { return <JobDetailPage job={selectedJob} applicants={recruitmentData.applicants.filter(a => a.jobPosition === selectedJob.title && a.location === selectedJob.location)} onUpdateJobField={recruitmentData.updateJobPosition} onSelectApplicant={handleSelectApplicant} onBack={handleBack} updateApplicantStatus={recruitmentData.updateApplicantStatus} updateApplicantRating={recruitmentData.updateApplicantRating} updateApplicantComment={recruitmentData.updateApplicantComment} /> }
+    switch (currentPage) {
+      case 'dashboard': return <PerformanceDashboard data={recruitmentData} />;
+      case 'applicants': return <ApplicantManagement applicants={recruitmentData.applicants} onSelectApplicant={handleSelectApplicant} updateApplicantStatus={recruitmentData.updateApplicantStatus} updateApplicantRating={recruitmentData.updateApplicantRating} updateApplicantComment={recruitmentData.updateApplicantComment} allJobPositions={recruitmentData.allJobPositions} allLocations={recruitmentData.allLocations} />;
+      case 'jobs': return <JobPositionsDashboard jobPositions={recruitmentData.jobPositions} applicants={recruitmentData.applicants} onSelectJob={handleSelectJob} onAddJob={recruitmentData.addJobPosition} allLocations={recruitmentData.allLocations} allDepartments={recruitmentData.allDepartments} />;
+      default: return <PerformanceDashboard data={recruitmentData} />;
+    }
+  };
+
+  return (
+    <div className={`min-h-screen bg-light-gray dark:bg-dark-primary text-gray-800 dark:text-gray-200 font-sans transition-colors`}>
+      <Header currentPage={currentPage} onNavigate={handleNavigate} theme={theme} onToggleTheme={handleToggleTheme} />
+      <main className="container mx-auto p-4 sm:p-6 lg:p-8">{renderContent()}</main>
+    </div>
+  );
+};
+
+// --- From index.tsx (entry point) ---
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+    </script>
+  </body>
+</html>
